@@ -1,0 +1,9 @@
+.venv/
+podaci/
+izlaz/
+__pycache__/
+*.pyc
+*.txt
+!zahtevi.txt
+.env
+instaliraj_git.*
