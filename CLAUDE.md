@@ -47,6 +47,10 @@ ikonica nego znak aplikacije, pa je svoj.
 - Stari dnevnik `podaci/dnevnik.log` je ostao od pre prelaska na `applog`;
   može da se obriše ručno.
 
+## Ažuriranje (V2/V3)
+
+Folder na računaru je git klon MirkoRudic/kosnica-print (od 24.11.2026). `update.py` (kopija iz Nadzora), `/api/update`, `server.py --restart`. Verzija u `version.py`.
+
 ## Izuzeci od PRAVILA.md
 
 | Šifra | Izuzetak i zašto |
@@ -61,6 +65,5 @@ ikonica nego znak aplikacije, pa je svoj.
 
 ## Još nije urađeno
 
-- **V2** — nema ažuriranja iz aplikacije (`moduli/update.py`).
 - **Zaglavlje sa vrstama štampe** (Ramić / Magneti / Šolja) — simulacija je
   napravljena, čeka se potvrda pre produkcije.
