@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Košnica Print</title>
+<style>
+:root{
+  --papir:#F5F1E8; --ploca:#FFFDF8; --ivica:#DCD4C4; --tekst:#2E2A24;
+  --prigusen:#7A7265; --naglasak:#8A5A3B; --naglasak-tekst:#FFFDF8;
+  --scena:#E4DED2; --traka:#EFEADF;
+  --senka:0 1px 2px rgba(46,42,36,.07), 0 6px 16px rgba(46,42,36,.06);
+}
+:root[data-tema="tamna"]{
+  --papir:#1C1A17; --ploca:#26231F; --ivica:#3A3630; --tekst:#EDE7DC;
+  --prigusen:#9A9183; --naglasak:#C98A5E; --naglasak-tekst:#1C1A17;
+  --scena:#151310; --traka:#211E1A;
+  --senka:0 1px 2px rgba(0,0,0,.4), 0 6px 16px rgba(0,0,0,.3);
+}
+:root[data-tema="sepija"]{
+  --papir:#EFE3CE; --ploca:#FAF2E2; --ivica:#D8C5A4; --tekst:#3B2F1E;
+  --prigusen:#8A7756; --naglasak:#9C6B2F; --naglasak-tekst:#FAF2E2;
+  --scena:#E0D1B4; --traka:#EADCC2;
+  --senka:0 1px 2px rgba(59,47,30,.09), 0 6px 16px rgba(59,47,30,.07);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;overflow:hidden;
+  font:14px/1.5 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--papir);color:var(--tekst);-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:12px}
+[hidden]{display:none !important}
+button{font:inherit}
+svg.ik{width:16px;height:16px;flex:none;display:block}
+
+/* ---- skrol, svuda isti ---- */
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--prigusen) 32%,transparent);
+  border-radius:10px;border:3px solid transparent;background-clip:padding-box}
+*::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--prigusen) 55%,transparent);
+  border:3px solid transparent;background-clip:padding-box}
+*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--prigusen) 36%,transparent) transparent}
+
+/* ---- čekboks ---- */
+input[type=checkbox]{appearance:none;-webkit-appearance:none;margin:0;
+  width:17px;height:17px;flex:none;border:1.5px solid var(--ivica);border-radius:5px;
+  background:var(--ploca);cursor:pointer;position:relative;transition:.12s}
+input[type=checkbox]:hover{border-color:var(--naglasak)}
+input[type=checkbox]:checked{background:var(--naglasak);border-color:var(--naglasak)}
+input[type=checkbox]:checked::after{content:"";position:absolute;left:5px;top:1.5px;
+  width:5px;height:9px;border:solid var(--naglasak-tekst);border-width:0 2px 2px 0;
+  transform:rotate(43deg)}
+
+.ljuska{height:100dvh;display:flex;flex-direction:column}
+.app{flex:1;min-height:0;display:grid;
+  grid-template-columns:clamp(200px,16vw,258px) minmax(0,1fr) clamp(268px,23vw,330px);
+  gap:10px;padding:10px 12px 4px}
+aside,main{min-height:0;min-width:0;display:flex;flex-direction:column}
+
+/* ---- levo ---- */
+.levo{gap:9px}
+.marka{display:flex;align-items:center;gap:9px;padding:1px 2px 0}
+.marka b{font-size:15px;letter-spacing:-.2px;font-weight:650}
+.marka svg{width:28px;height:28px;flex:none;color:var(--naglasak);
+  filter:drop-shadow(0 1px 2px rgba(46,42,36,.18))}
+.biblio{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px}
+.odsek{display:flex;flex-direction:column;min-height:0;flex:1}
+.pod-naslov{display:flex;justify-content:space-between;align-items:center;gap:6px;
+  font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--prigusen);padding:4px 3px 5px}
+.spisak{flex:1;min-height:46px;overflow:auto;
+  display:flex;flex-direction:column;gap:2px;padding:5px;
+  background:var(--ploca);border:1px solid var(--ivica);border-radius:10px}
+.stavka{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  padding:4px;border:1px solid transparent;border-radius:8px;cursor:pointer;
+  background:none;color:inherit;font:inherit}
+.stavka:hover{background:color-mix(in srgb,var(--naglasak) 9%,transparent)}
+.stavka.izabrana{border-color:var(--naglasak);background:color-mix(in srgb,var(--naglasak) 13%,transparent)}
+.stavka img{width:38px;height:29px;object-fit:cover;border-radius:5px;flex:none;background:var(--scena)}
+.stavka span{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.stavka .x{opacity:0;border:none;background:none;color:var(--prigusen);cursor:pointer;
+  padding:2px;line-height:0;border-radius:5px}
+.stavka:hover .x{opacity:1}
+.stavka .x:hover{color:#B4483C;background:color-mix(in srgb,#B4483C 12%,transparent)}
+/* drvo */
+.grana{display:flex;align-items:center;gap:6px;width:100%;text-align:left;cursor:pointer;
+  background:none;border:none;color:inherit;font:inherit;font-size:12px;
+  padding:4px 5px;border-radius:7px}
+.grana:hover{background:color-mix(in srgb,var(--naglasak) 9%,transparent)}
+.grana.otvorena > .strelica{transform:rotate(90deg)}
+.grana .strelica{color:var(--prigusen);transition:transform .14s;width:13px;height:13px}
+.grana .fas{color:var(--naglasak);width:15px;height:15px}
+.grana b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deca{display:flex;flex-direction:column;gap:2px;margin-left:11px;
+  padding-left:6px;border-left:1px solid var(--ivica)}
+.list{display:flex;align-items:center;gap:7px;width:100%;text-align:left;cursor:pointer;
+  background:none;border:1px solid transparent;color:inherit;font:inherit;font-size:12px;
+  padding:3px 5px;border-radius:7px}
+.list:hover{background:color-mix(in srgb,var(--naglasak) 9%,transparent)}
+.list img{width:30px;height:23px;object-fit:cover;border-radius:4px;flex:none;background:var(--scena)}
+.list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---- sredina ---- */
+.sredina{gap:8px}
+.traka-ed{display:flex;align-items:center;gap:8px;padding:0 3px;min-height:24px}
+.traka-ed .ime{font-size:12.5px;font-weight:600;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;flex:1}
+.scena{flex:1;min-height:0;position:relative;border-radius:12px;overflow:hidden;
+  background:var(--scena);border:1px solid var(--ivica);box-shadow:var(--senka);
+  display:grid;place-items:center}
+.scena.pada{outline:2px dashed var(--naglasak);outline-offset:-6px}
+#platno{display:block;touch-action:none;cursor:grab}
+#platno.vuce{cursor:grabbing}
+.alatke{position:absolute;right:10px;bottom:10px;display:flex;gap:3px;padding:3px;
+  border-radius:9px;border:1px solid var(--ivica);
+  background:color-mix(in srgb,var(--ploca) 90%,transparent);backdrop-filter:blur(6px)}
+.alatke button{border:none;background:none;color:var(--prigusen);cursor:pointer;
+  width:28px;height:28px;border-radius:6px;display:grid;place-items:center}
+.alatke button:hover{background:color-mix(in srgb,var(--naglasak) 14%,transparent);color:var(--tekst)}
+.prazno{position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+  color:var(--prigusen);font-size:13px;padding:24px;line-height:1.7;pointer-events:none}
+.prazno b{display:block;font-size:14px;color:var(--tekst);font-weight:600;margin-bottom:3px}
+
+/* ---- desno ---- */
+.desno{gap:8px}
+.tabovi{display:flex;gap:3px;padding:3px;background:var(--ploca);
+  border:1px solid var(--ivica);border-radius:10px}
+.tabovi button{flex:1;white-space:nowrap;border:none;background:none;color:var(--prigusen);
+  font-size:12px;padding:6px 7px;border-radius:7px;cursor:pointer}
+.tabovi button:hover{color:var(--tekst)}
+.tabovi button.aktivan{background:var(--naglasak);color:var(--naglasak-tekst);font-weight:600}
+.telo{flex:1;min-height:0;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:13px;
+  background:var(--ploca);border:1px solid var(--ivica);border-radius:12px;box-shadow:var(--senka)}
+.grupa{display:flex;flex-direction:column;gap:9px}
+.nalepnica{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--prigusen)}
+.red{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.red label{font-size:12.5px}
+.crta{border:none;border-top:1px solid var(--ivica);margin:1px 0}
+.dno{display:flex;flex-direction:column;gap:6px}
+.dno .uporedo{display:flex;gap:6px}
+.dno .uporedo .glavno{flex:1}
+
+/* ---- kontrole ---- */
+.glavno,.sporedno,.tiho{border-radius:9px;cursor:pointer;padding:8px 13px;font-size:12.5px;
+  border:1px solid var(--ivica);background:var(--ploca);color:var(--tekst);
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  transition:background .12s,border-color .12s}
+.glavno{background:var(--naglasak);border-color:var(--naglasak);color:var(--naglasak-tekst);font-weight:600}
+.glavno:hover:not(:disabled){filter:brightness(1.08)}
+.sporedno:hover:not(:disabled){background:color-mix(in srgb,var(--naglasak) 10%,transparent)}
+.tiho{border-color:transparent;background:none;color:var(--prigusen);padding:7px 9px}
+.tiho:hover{background:color-mix(in srgb,var(--naglasak) 10%,transparent);color:var(--tekst)}
+button:disabled{opacity:.45;cursor:default}
+select,input[type=text],input[type=number]{width:100%;padding:7px 9px;
+  border:1px solid var(--ivica);border-radius:8px;background:var(--ploca);
+  color:var(--tekst);font:inherit;font-size:12.5px}
+input[type=range]{width:100%;accent-color:var(--naglasak)}
+label.cek{display:flex;gap:8px;align-items:center;font-size:12.5px;cursor:pointer}
+.plocice{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.plocica{border:1px solid var(--ivica);border-radius:8px;overflow:hidden;cursor:pointer;
+  background:none;padding:0;color:inherit;display:flex;flex-direction:column}
+.plocica img{width:100%;aspect-ratio:3/2;object-fit:cover;display:block;background:var(--scena)}
+.plocica.traka img{aspect-ratio:auto;height:34px}
+.plocica span{font-size:10px;padding:3px 3px;text-align:center;line-height:1.3}
+.plocica.aktivna{border-color:var(--naglasak);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--naglasak) 30%,transparent)}
+.bojice{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;padding:2px}
+.bojica{aspect-ratio:1;border-radius:6px;border:1px solid var(--ivica);cursor:pointer;padding:0}
+.bojica.aktivna{box-shadow:0 0 0 2px var(--naglasak);border-color:var(--naglasak)}
+.boja-red{display:flex;gap:6px;align-items:center}
+.boja-red input[type=color]{width:38px;height:32px;padding:2px;border:1px solid var(--ivica);
+  border-radius:8px;background:var(--ploca);cursor:pointer}
+.boja-red .mono{flex:1}
+
+/* ---- sopstveni oblačić, bez title= (UI4) ---- */
+[data-savet]{position:relative}
+[data-savet]::after{content:attr(data-savet);position:absolute;left:50%;bottom:calc(100% + 7px);
+  transform:translateX(-50%) translateY(3px);white-space:nowrap;pointer-events:none;
+  background:var(--tekst);color:var(--papir);font-size:11px;line-height:1.3;
+  padding:4px 7px;border-radius:6px;opacity:0;z-index:50;
+  transition:opacity .12s,transform .12s;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+[data-savet]:hover::after,[data-savet]:focus-visible::after{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){[data-savet]::after{transition:none}}
+
+/* ---- dnevnik: filter i veličina ---- */
+.dnev-traka{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:10px 18px;border-bottom:1px solid var(--ivica)}
+.dnev-traka input[type=text]{flex:1 1 180px;max-width:330px;width:auto}
+.dnev-traka select{width:auto}
+.dnev-traka .mono{color:var(--prigusen);margin-left:auto;white-space:nowrap}
+.verzija{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  font-size:11.5px;color:var(--prigusen)}
+.verzija b{font-weight:600;color:var(--tekst)}
+
+/* ---- podnožje ---- */
+.podnozje{display:flex;justify-content:center;align-items:center;gap:7px;font-size:11px;color:var(--prigusen);padding:4px 0 8px}
+.podnozje .ik{width:14px;height:14px;color:var(--naglasak)}
+.podes-red{display:flex;gap:6px}
+.podes-red #dugme-podesavanja{flex:1}
+.podes-red #dugme-ugasi{padding:8px 10px}
+
+/* ---- dijalozi ---- */
+dialog{border:1px solid var(--ivica);border-radius:14px;padding:0;background:var(--ploca);
+  color:var(--tekst);box-shadow:var(--senka);max-height:90dvh}
+dialog::backdrop{background:rgba(20,18,15,.45);backdrop-filter:blur(2px)}
+#dij-podesavanja{width:min(840px,94vw)}
+#dij-stampa{width:min(480px,92vw)}
+#dij-poruka{width:min(400px,90vw)}
+#dij-naziv{width:min(400px,90vw)}
+#dij-dnevnik{width:min(900px,94vw)}
+.dij{display:flex;flex-direction:column;max-height:90dvh}
+.dij-glava{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--ivica)}
+.dij-glava b{flex:1;font-size:15px}
+.dij-telo{padding:16px 18px;overflow-y:auto;flex:1;min-height:0;
+  display:flex;flex-direction:column;gap:14px}
+.dij-dno{display:flex;gap:8px;justify-content:flex-end;padding:13px 18px;border-top:1px solid var(--ivica)}
+.dvokolona{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px}
+.celo{grid-column:1/-1}
+.polje{display:flex;flex-direction:column;gap:4px}
+.polje span{font-size:11px;color:var(--prigusen)}
+.dvoje{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.lista-ramova{display:flex;flex-direction:column;gap:4px}
+.ram-red{display:flex;align-items:center;gap:9px;padding:7px 9px;border:1px solid var(--ivica);
+  border-radius:8px;cursor:pointer;background:var(--ploca);color:inherit;text-align:left}
+.ram-red:hover{background:color-mix(in srgb,var(--naglasak) 8%,transparent)}
+.ram-red.izabran{border-color:var(--naglasak)}
+.ram-red b{font-size:12.5px;font-weight:600;flex:1}
+.ram-red .mono{color:var(--prigusen)}
+.poruka{font-size:11.5px;color:var(--prigusen);line-height:1.55;margin:0}
+.poruka.lose{color:#B4483C}
+.poruka.vazno{color:var(--naglasak);font-weight:600}
+.teme{display:flex;gap:7px}
+.tema-dugme{flex:1;border:1px solid var(--ivica);border-radius:9px;padding:9px 6px;
+  cursor:pointer;font-size:11.5px;background:var(--ploca);color:inherit}
+.tema-dugme.aktivna{border-color:var(--naglasak);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--naglasak) 28%,transparent)}
+.sazetak{display:flex;flex-direction:column;gap:8px;font-size:12.5px}
+.sazetak div{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.sazetak span:first-child{color:var(--prigusen)}
+#pregled-stampe{width:100%;max-height:min(30dvh,220px);object-fit:contain;
+  border:1px solid var(--ivica);border-radius:9px;background:var(--traka);display:block;padding:8px}
+#dnevnik-telo{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;line-height:1.65;
+  white-space:pre-wrap;word-break:break-word;margin:0;color:var(--tekst)}
+@media (max-width:1180px){ .dvokolona{grid-template-columns:1fr} }
+
+/* V3: version.js - red "Verzija", traka „Nova verzija“, poruka posle ažuriranja (vajb-osnova base.css) */
+.vv-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:36px}
+.vv-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.vv-st{font-size:12px;display:flex;align-items:center;gap:4px}
+.vv-ok{color:#4caf50}.vv-muted{color:var(--prigusen)}.vv-new{color:var(--naglasak)}
+.vv-bar{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 12px;background:var(--traka);border-bottom:1px solid var(--ivica);font-size:13px}
+.vv-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ploca);border:1px solid var(--ivica);border-radius:8px;padding:8px 14px;box-shadow:var(--senka);z-index:9999}
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" xmlns:c2pa="http://c2pa.org/manifest">
+<!-- Ikonice: Tabler Icons 3.31.0 (tabler.io/icons), MIT. Jedini izvor ikonica (UI7).
+     i-znak nije ikonica nego znak aplikacije, pa ostaje svoj. -->
+<symbol id="i-znak" viewBox="0 0 32 32">
+  <polygon points="16,1 28.99,8.5 28.99,23.5 16,31 3.01,23.5 3.01,8.5" fill="#D9A441"/>
+  <rect x="9.3" y="11.4" width="13.4" height="9.6" rx="1.5" fill="none" stroke="#121316" stroke-width="1.7"/>
+  <polygon points="11.4,19.2 13.9,15.2 15.6,17.6 17.3,14.9 20.6,19.2" fill="#121316"/>
+  <circle cx="19.2" cy="13.9" r="1.05" fill="#121316"/>
+</symbol>
+<symbol id="i-zupcanik" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: settings -->
+  <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"/>
+  <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/>
+</symbol>
+<symbol id="i-struja" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: power -->
+  <path d="M7 6a7.75 7.75 0 1 0 10 0"/>
+  <path d="M12 4l0 8"/>
+</symbol>
+<symbol id="i-rot-levo" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: rotate -->
+  <path d="M19.95 11a8 8 0 1 0 -.5 4m.5 5v-5h-5"/>
+</symbol>
+<symbol id="i-rot-desno" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: rotate-clockwise -->
+  <path d="M4.05 11a8 8 0 1 1 .5 4m-.5 5v-5h5"/>
+</symbol>
+<symbol id="i-ogledalo" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: flip-vertical -->
+  <path d="M12 3l0 18"/>
+  <path d="M16 7l0 10l5 0l-5 -10"/>
+  <path d="M8 7l0 10l-5 0l5 -10"/>
+</symbol>
+<symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: x -->
+  <path d="M18 6l-12 12"/>
+  <path d="M6 6l12 12"/>
+</symbol>
+<symbol id="i-kanta" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: trash -->
+  <path d="M4 7l16 0"/>
+  <path d="M10 11l0 6"/>
+  <path d="M14 11l0 6"/>
+  <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+  <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+</symbol>
+<symbol id="i-fascikla" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: folder -->
+  <path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/>
+</symbol>
+<symbol id="i-strelica" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: chevron-right -->
+  <path d="M9 6l6 6l-6 6"/>
+</symbol>
+<symbol id="i-pipeta" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: color-picker -->
+  <path d="M11 7l6 6"/>
+  <path d="M4 16l11.7 -11.7a1 1 0 0 1 1.4 0l2.6 2.6a1 1 0 0 1 0 1.4l-11.7 11.7h-4v-4z"/>
+</symbol>
+<symbol id="i-dnevnik" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: notebook -->
+  <path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18"/>
+  <path d="M13 8l2 0"/>
+  <path d="M13 12l2 0"/>
+</symbol>
+<metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo5ZTczYmU4OC1mY2UwLTRkNTItOTE2YS03MTNlMjcxNjIzOWUAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaIgJsJfskay91Z2BvCMDkiwAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpkNTA5MzAwYy1mMWI2LTQ2MzMtYmY2Yy01MGZhY2U2M2ExNjBscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNopB3P2p4k7LUmwe3+NYG/6AAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggZlZHD62SSJe99YTCnYEjz4SAZN2X/OCDCf6n1uaqlD2kZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaPDZMlJwVA5YBQQQi2PjayUAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYINQa5MTMA/HYk4XLvHv4hKrA9MwgY6Kc9CuZRUMP9jQvZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GRCZZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjllNzNiZTg4LWZjZTAtNGQ1Mi05MTZhLTcxM2UyNzE2MjM5ZS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjQwMGM2ZjBkLTI4ODctNDljMi05ZDVhLTIzYmM2NjQ2NGQ1MXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCBmVkcPrZJIl731hMKdgSPPhIBk3Zf84IMJ/qfW5qqUPaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg+xkq7mT49Wj/Z/KX0mo5+WPRaQpuRW7IEqMtFKBe5SGiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggWB6whJIsHt6kYgoE+Rl6OLTPfqy4ZlUkSbyvlo01a410Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQG2t+VeFdi0sJNy89+LDL5k8jAsQt61R9dMUeGsScXJpYofNSeh+Id9/8ZsYv5bni7L3vUDKcJuJ6UqlT4Vva6g=</c2pa:manifest></metadata><symbol id="i-srce-munja" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tabler: heart-bolt -->
+  <path d="M13 19l-1 1l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 0 1 8.003 5.997" /><path d="M19 16l-2 3h4l-2 3" />
+</symbol>
+</svg>
+<div class="ljuska">
+  <div class="app">
+
+    <!-- ===================================================== levo -->
+    <aside class="levo">
+      <div class="marka"><svg><use href="#i-znak"/></svg><b>Košnica Print</b></div>
+      <button class="glavno" id="dugme-uvezi">Uvezi</button>
+      <input type="file" id="fajlovi" multiple hidden
+             accept="image/*,.pdf,.heic,.heif,.tif,.tiff,.webp">
+
+      <div class="biblio">
+        <div class="odsek">
+          <div class="pod-naslov"><span>Nedavno</span><span id="broj"></span></div>
+          <div class="spisak" id="red"></div>
+        </div>
+        <div class="odsek">
+          <div class="pod-naslov"><span>Biblioteka</span></div>
+          <div class="spisak" id="drvo"></div>
+        </div>
+      </div>
+
+      <div class="podes-red">
+        <button class="sporedno" id="dugme-podesavanja">
+          <svg class="ik"><use href="#i-zupcanik"/></svg>Podešavanja</button>
+        <button class="sporedno" id="dugme-ugasi" data-savet="Ugasi" aria-label="Ugasi">
+          <svg class="ik"><use href="#i-struja"/></svg></button>
+      </div>
+    </aside>
+
+    <!-- ===================================================== editor -->
+    <main class="sredina">
+      <div id="vv-bars"></div>
+      <div class="traka-ed"><span class="ime" id="ime-fajla">—</span></div>
+      <div class="scena" id="scena">
+        <canvas id="platno"></canvas>
+        <div class="alatke" id="alatke" hidden>
+          <button data-rot="-90" data-savet="Zarotiraj ulevo" aria-label="Zarotiraj ulevo"><svg class="ik"><use href="#i-rot-levo"/></svg></button>
+          <button data-rot="90" data-savet="Zarotiraj udesno" aria-label="Zarotiraj udesno"><svg class="ik"><use href="#i-rot-desno"/></svg></button>
+          <button id="ogledalo" data-savet="Okreni levo-desno" aria-label="Okreni levo-desno"><svg class="ik"><use href="#i-ogledalo"/></svg></button>
+        </div>
+        <div class="prazno" id="prazno">
+          <div><b>Prevuci sliku ovde</b>ili klikni Uvezi. JPG, PNG, TIFF, HEIC i PDF.</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===================================================== desno -->
+    <aside class="desno">
+      <nav class="tabovi" id="tabovi">
+        <button data-tab="boja" class="aktivan">Boja</button>
+        <button data-tab="preklop">Preklop</button>
+        <button data-tab="tabak">Tabak</button>
+      </nav>
+
+      <div class="telo" id="telo">
+
+        <!-- ------------------------------------------- boja -->
+        <section data-panel="boja" class="grupa">
+          <span class="nalepnica">Preseti</span>
+          <div class="plocice" id="plocice-preseta"></div>
+          <div id="grupa-jacine" hidden>
+            <div class="red"><label for="b-jacina">Jačina preseta</label>
+              <span class="mono" id="v-jacina">100 %</span></div>
+            <input type="range" id="b-jacina" min="0" max="100" value="100">
+          </div>
+          <hr class="crta">
+          <button class="glavno" id="auto-sve">Automatski sredi sliku</button>
+          <div><div class="red"><label for="b-crna">Crna tačka</label><span class="mono" id="v-crna">auto</span></div>
+            <input type="range" id="b-crna" min="0" max="170" value="0"></div>
+          <div><div class="red"><label for="b-bela">Bela tačka</label><span class="mono" id="v-bela">auto</span></div>
+            <input type="range" id="b-bela" min="180" max="255" value="255"></div>
+          <div><div class="red"><label for="b-zas">Zasićenje</label><span class="mono" id="v-zas">1.12</span></div>
+            <input type="range" id="b-zas" min="60" max="180" value="112"></div>
+          <div><div class="red"><label for="b-jas">Lokalni kontrast</label><span class="mono" id="v-jas">30</span></div>
+            <input type="range" id="b-jas" min="0" max="100" value="30"></div>
+          <hr class="crta">
+          <div><div class="red"><label for="b-zum">Veličina u prozoru</label>
+            <span class="mono" id="v-zum">1.00×</span></div>
+            <input type="range" id="b-zum" min="25" max="300" value="100"></div>
+          <div id="grupa-pozadine" hidden>
+            <span class="nalepnica">Boja oko slike</span>
+            <div class="bojice" id="bojice-pozadine"></div>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------- preklop -->
+        <section data-panel="preklop" class="grupa" hidden>
+          <div class="plocice" id="plocice-popune" style="grid-template-columns:1fr"></div>
+          <div id="grupa-boje-popune" hidden>
+            <span class="nalepnica">Boja</span>
+            <div class="bojice" id="bojice"></div>
+            <div class="boja-red">
+              <input type="color" id="boja-birac" value="#FFFFFF">
+              <span class="mono" id="boja-tekst">#FFFFFF</span>
+              <button class="sporedno" id="pipeta" data-savet="Uzmi boju sa ekrana" aria-label="Uzmi boju sa ekrana">
+                <svg class="ik"><use href="#i-pipeta"/></svg></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------- tabak -->
+        <section data-panel="tabak" class="grupa" hidden>
+          <img id="slika-tabaka" alt=""
+               style="width:100%;border:1px solid var(--ivica);border-radius:9px;background:#fff">
+          <div class="red"><label for="kopija">Komada po slici</label>
+            <span class="mono" id="v-kopija">1</span></div>
+          <input type="range" id="kopija" min="1" max="24" value="1">
+          <hr class="crta">
+          <div class="dvoje">
+            <div class="polje"><span>Margina (mm)</span>
+              <input type="number" step="0.5" min="3" id="t-ivica"></div>
+            <div class="polje"><span>Razmak (mm)</span>
+              <input type="number" step="0.5" min="5" id="t-razmak"></div>
+          </div>
+          <button class="sporedno" id="dugme-maks">Iskoristi list do kraja</button>
+          <label class="cek"><input type="checkbox" id="lenjir"> Lenjir za proveru razmere</label>
+          <button class="sporedno" id="dugme-pdf">Napravi PDF umesto štampe</button>
+        </section>
+      </div>
+
+      <div class="dno">
+        <button class="sporedno" id="dugme-sacuvaj" disabled>Sačuvaj pripremu</button>
+        <div class="uporedo">
+          <button class="glavno" id="dugme-stampaj" disabled>Štampaj</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="podnozje"><svg class="ik"><use href="#i-srce-munja"/></svg>Napravljeno u Zajedničkoj zanatskoj radionici Ožiljak<svg class="ik"><use href="#i-srce-munja"/></svg></div>
+</div>
+
+<!-- ======================================================= poruka -->
+<dialog id="dij-poruka"><div class="dij">
+  <div class="dij-glava"><b id="poruka-naslov">Obaveštenje</b></div>
+  <div class="dij-telo"><p class="poruka" id="poruka-tekst" style="font-size:13px"></p></div>
+  <div class="dij-dno"><button class="glavno" id="poruka-ok">U redu</button></div>
+</div></dialog>
+
+<!-- ======================================================= potvrda -->
+<dialog id="dij-potvrda"><div class="dij">
+  <div class="dij-glava"><b id="potvrda-naslov">Potvrda</b></div>
+  <div class="dij-telo"><p class="poruka" id="potvrda-tekst" style="font-size:13px"></p></div>
+  <div class="dij-dno">
+    <button class="sporedno" id="potvrda-ne">Odustani</button>
+    <button class="glavno" id="potvrda-da">Obriši</button>
+  </div>
+</div></dialog>
+
+<!-- ======================================================= naziv -->
+<dialog id="dij-naziv"><div class="dij">
+  <div class="dij-glava"><b>Sačuvaj pripremu</b></div>
+  <div class="dij-telo">
+    <div class="polje"><span>Naziv</span><input type="text" id="naziv-polje"></div>
+  </div>
+  <div class="dij-dno">
+    <button class="sporedno" id="naziv-otkazi">Otkaži</button>
+    <button class="glavno" id="naziv-ok">Sačuvaj</button>
+  </div>
+</div></dialog>
+
+<!-- ======================================================= štampa -->
+<dialog id="dij-stampa"><div class="dij">
+  <div class="dij-glava"><b>Pre štampe</b></div>
+  <div class="dij-telo">
+    <img id="pregled-stampe" alt="">
+    <div class="polje"><span>Štampač</span><select id="s-stampac"></select></div>
+    <div class="polje"><span>Papir</span><select id="s-papir"></select></div>
+    <div class="polje"><span>Šta se štampa</span><select id="s-opseg"></select></div>
+    <div>
+      <div class="red"><label for="s-kopija">Komada po slici</label>
+        <span class="mono" id="s-kopija-v">1</span></div>
+      <input type="range" id="s-kopija" min="1" max="24" value="1">
+    </div>
+    <div class="sazetak">
+      <div><span>Ukupno otisaka</span><b id="s-otisaka">—</b></div>
+      <div><span>Listova</span><b id="s-tabaka">—</b></div>
+    </div>
+    <p class="poruka" id="s-poruka"></p>
+  </div>
+  <div class="dij-dno">
+    <button class="sporedno" id="stampa-odustani">Odustani</button>
+    <button class="glavno" id="stampa-potvrdi">Pošalji na štampač</button>
+  </div>
+</div></dialog>
+
+<!-- ======================================================= dnevnik -->
+<dialog id="dij-dnevnik"><div class="dij">
+  <div class="dij-glava"><b>Dnevnik</b>
+    <button class="sporedno" id="dnevnik-osvezi">Osveži</button>
+    <button class="tiho" id="dnevnik-zatvori"><svg class="ik"><use href="#i-x"/></svg></button></div>
+  <div class="dnev-traka">
+    <input type="text" id="dnevnik-trazi" placeholder="Traži u dnevniku…">
+    <select id="dnevnik-dana">
+      <option value="1">danas</option>
+      <option value="2" selected>2 dana</option>
+      <option value="7">7 dana</option>
+      <option value="30">30 dana</option>
+    </select>
+    <label class="cek"><input type="checkbox" id="dnevnik-greske"> Samo greške</label>
+    <span class="mono" id="dnevnik-velicina">—</span>
+  </div>
+  <div class="dij-telo"><pre id="dnevnik-telo">—</pre></div>
+  <div class="dij-dno">
+    <select id="dnevnik-starost" style="width:auto">
+      <option value="7">starije od 7 dana</option>
+      <option value="30" selected>starije od 30 dana</option>
+      <option value="90">starije od 90 dana</option>
+    </select>
+    <button class="sporedno" id="dnevnik-obrisi">Obriši</button>
+  </div>
+</div></dialog>
+
+<!-- ======================================================= podešavanja -->
+<dialog id="dij-podesavanja"><div class="dij">
+  <div class="dij-glava"><b>Podešavanja</b>
+    <button class="tiho" id="zatvori-pod"><svg class="ik"><use href="#i-x"/></svg></button></div>
+  <div class="dij-telo">
+    <div class="dvokolona">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Izgled</span>
+        <div class="teme" id="teme">
+          <button class="tema-dugme" data-tema="svetla">Svetla</button>
+          <button class="tema-dugme" data-tema="tamna">Tamna</button>
+          <button class="tema-dugme" data-tema="sepija">Sepija</button>
+        </div>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa">
+        <span class="nalepnica">Ramovi</span>
+        <div class="lista-ramova" id="lista-ramova"></div>
+        <button class="sporedno" id="nov-ram">Nov ram</button>
+      </div>
+
+      <div class="grupa">
+        <span class="nalepnica" id="naslov-rama">Mere rama</span>
+        <div class="polje"><span>Naziv</span><input type="text" id="r-naziv"></div>
+        <div class="dvoje">
+          <div class="polje"><span>Prozor širina (mm)</span><input type="number" step="0.01" id="r-ps"></div>
+          <div class="polje"><span>Prozor visina (mm)</span><input type="number" step="0.01" id="r-pv"></div>
+          <div class="polje"><span>Rez širina (mm)</span><input type="number" step="0.01" id="r-rs"></div>
+          <div class="polje"><span>Rez visina (mm)</span><input type="number" step="0.01" id="r-rv"></div>
+          <div class="polje"><span>Napust (mm)</span><input type="number" step="0.1" id="r-nap"></div>
+          <div class="polje"><span>Oštro ogledalo (mm)</span><input type="number" step="0.1" id="r-ostro"></div>
+        </div>
+        <div class="red" style="gap:6px">
+          <button class="glavno" id="sacuvaj-ram" style="flex:1">Sačuvaj ram</button>
+          <button class="sporedno" id="dugme-stl">Izmeri iz STL-a</button>
+          <button class="sporedno" id="obrisi-ram" data-savet="Obriši izabrani ram" aria-label="Obriši izabrani ram">
+            <svg class="ik"><use href="#i-kanta"/></svg></button>
+        </div>
+        <input type="file" id="stl-fajl" accept=".stl" hidden>
+        <p class="poruka" id="poruka-rama"></p>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Štampač</span>
+        <div class="dvoje">
+          <div class="polje"><span>Uređaj</span><select id="izbor-stampaca"></select></div>
+          <div class="polje"><span>Papir</span><select id="izbor-papira"></select></div>
+        </div>
+        <p class="poruka" id="opis-stampaca">Ovo važi samo za poslove koje šalje ova
+          aplikacija. Sistemska podešavanja štampača se ne diraju, pa ono što štampaš
+          iz drugih programa ostaje nepromenjeno.</p>
+        <label class="cek"><input type="checkbox" id="p-svi-papiri"> Prikaži sve tipove papira iz drajvera</label>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Kalibracija</span>
+        <p class="poruka">Odštampaj kontrolni list, izmeri liniju šublerom i unesi
+          koliko si stvarno izmerio.</p>
+        <div class="dvoje">
+          <div class="polje"><span>Izmereno na papiru (mm)</span>
+            <input type="number" step="0.1" id="k-izmereno" value="150"></div>
+          <div class="polje"><span>Trenutni faktor</span>
+            <input type="text" id="k-faktor" readonly></div>
+        </div>
+        <div class="red" style="gap:6px">
+          <button class="sporedno" id="kal-stampaj" style="flex:1">Odštampaj kontrolni list</button>
+          <button class="glavno" id="kal-upisi" style="flex:1">Upiši meru</button>
+        </div>
+        <label class="cek"><input type="checkbox" id="p-lenjir"> Lenjir i na listovima sa slikama</label>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Biblioteka</span>
+        <div class="red" style="gap:6px">
+          <input type="text" id="p-biblioteka" style="flex:1">
+          <button class="sporedno" id="izaberi-fasciklu">Izaberi…</button>
+        </div>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Dnevnik</span>
+        <div class="verzija"><span class="mono" id="pod-dnevnik-mb">—</span></div>
+        <button class="sporedno" id="dugme-dnevnik">
+          <svg class="ik"><use href="#i-dnevnik"/></svg>Dnevnik</button>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Verzija</span>
+        <div id="ver-box"><b id="oznaka-verzije" hidden>—</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="dij-dno"><button class="glavno" id="sacuvaj-pod">Sačuvaj podešavanja</button></div>
+</div></dialog>
+<script>
+// VAJB version.js 1.1 - "Verzija" u Podešavanjima + traka „Nova verzija“ (PRAVILA.md V1, V2, V3). Based on PDFactory.
+// Needs base.css + dialog.js. Server: GET /api/update (update.status / selfupdate.check), POST /api/update
+// (update.apply / selfupdate.apply), GET /health -> {pid, version}, GET /api/settings -> {version: "<App> X.Y.Z · hash"}.
+//
+//   vv.init({ storeKey: "mojaapp", beforeUpdate: async () => true, labels: {...} });   // once at start
+//   vv.section(container, settings.version)   // row: "<App> X.Y.Z · hash" + under it the state of the last check
+//                                             // („Najnovija verzija · provereno 14:40“ / „Nova verzija X“) + one button
+//   vv.startChecks(barsElement)               // check at start and every hour -> bar „Nova verzija X“ + Ažuriraj
+//
+// Every check (start, hourly, by hand) is remembered and shown in the section. Button: „Proveri“, or „Ažuriraj na X“
+// when a newer version is known; one click checks and, if newer (or code on disk newer than the running server),
+// updates + restarts at once. After the reload a toast says „Ažurirano: X.Y.Z“.
+// beforeUpdate: save the workspace / ask about unsaved changes; return false to cancel.
+(function () {
+  const L = {
+    check: "Proveri", updateTo: (v) => `Ažuriraj na ${v}`, latest: "Najnovija verzija", failed: "Provera nije uspela",
+    checking: "Provera…", checked: (t) => `provereno ${t}`,
+    updating: (v) => `Ažuriranje na ${v}…`, newVersion: (v) => `Nova verzija ${v}`, update: "Ažuriraj",
+    updated: (v) => `Ažurirano: ${v}`, theNew: "novu verziju",
+  };
+  let opt = { storeKey: "app", beforeUpdate: async () => true };
+  let pid = null;
+  let last = null;                        // {r, at} of the last check
+  const isNew = (r) => r && r.ok && (r.behind || r.restart);
+  const hhmm = (d) => d.toLocaleTimeString("sr-RS", { hour: "2-digit", minute: "2-digit" });
+  async function check() {
+    const r = await getJSON("/api/update").catch(() => ({ ok: false }));
+    last = { r, at: new Date() };
+    return r;
+  }
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const getJSON = (u) => fetch(u).then((r) => r.json());
+
+  function toast(text) {
+    const t = document.createElement("div"); t.className = "vv-toast"; t.textContent = text;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 4000);
+  }
+
+  async function init(o = {}) {
+    opt = { ...opt, ...o }; Object.assign(L, o.labels || {});
+    try { pid = (await getJSON("/health")).pid; } catch (e) { /* server not up yet */ }
+    const key = opt.storeKey + ".upd";
+    try {
+      if (localStorage.getItem(key) !== null) {
+        localStorage.removeItem(key);
+        const h = await getJSON("/health"); toast(L.updated(h.version));
+      }
+    } catch (e) { /* no storage */ }
+  }
+
+  async function waitRestart() {
+    for (let i = 0; i < 90; i++) {
+      await new Promise((r) => setTimeout(r, 1000));
+      try { const h = await getJSON("/health"); if (h.pid !== pid) { location.reload(); return; } } catch (e) { /* restarting */ }
+    }
+  }
+
+  async function doUpdate(r) {
+    if (!(await opt.beforeUpdate())) return false;
+    try { localStorage.setItem(opt.storeKey + ".upd", r.version || ""); } catch (e) { /* no storage */ }
+    const p = await fetch("/api/update", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+      .then((x) => x.json()).catch(() => null);
+    if (p && p.ok) { setTimeout(waitRestart, 1500); return true; }
+    try { localStorage.removeItem(opt.storeKey + ".upd"); } catch (e) { /* no storage */ }
+    if (p && p.error && window.vd) vd.message(p.error);
+    return false;
+  }
+
+  function section(container, label) {
+    const row = document.createElement("div"); row.className = "vv-row";
+    row.innerHTML = `<div class="vv-info"><span>${esc(label)}</span><span class="vv-st"></span></div><button type="button"></button>`;
+    const st = row.querySelector(".vv-st"), b = row.querySelector("button");
+    const paint = () => {
+      if (!last) { st.innerHTML = `<span class="vv-muted">${esc(L.checking)}</span>`; b.textContent = L.check; return; }
+      const r = last.r, n = isNew(r);
+      st.innerHTML = !r.ok ? `<span class="vv-muted">${esc(L.failed)} · ${hhmm(last.at)}</span>`
+        : n ? `<span class="vv-new">${esc(L.newVersion(r.version || ""))}</span>`
+        : `<span class="vv-ok">${esc(L.latest)}</span><span class="vv-muted">· ${esc(L.checked(hhmm(last.at)))}</span>`;
+      b.textContent = n ? L.updateTo(r.version || "") : L.check;
+      b.classList.toggle("primary", !!n);
+    };
+    b.onclick = async () => {
+      let r = last && last.r;
+      if (!isNew(r)) { st.innerHTML = `<span class="vv-muted">${esc(L.checking)}</span>`; r = await check(); paint(); }
+      if (isNew(r)) {
+        b.disabled = true; st.innerHTML = `<span class="vv-ok">${esc(L.updating(r.version || L.theNew))}</span>`;
+        if (!(await doUpdate(r))) { b.disabled = false; paint(); }
+      }
+    };
+    container.appendChild(row);
+    paint();
+    if (!last || Date.now() - last.at > 3600 * 1000) check().then(() => row.isConnected && paint());
+    return row;
+  }
+
+  function startChecks(bars) {
+    const run = async () => {
+      const r = await check();
+      if (!isNew(r) || document.getElementById("vv-bar")) return;
+      const el = document.createElement("div"); el.id = "vv-bar"; el.className = "vv-bar";
+      el.innerHTML = `<span>${esc(L.newVersion(r.version || ""))}</span><button type="button" class="primary">${esc(L.update)}</button>`;
+      el.querySelector("button").onclick = async () => {
+        el.querySelector("span").textContent = L.updating(r.version || L.theNew);
+        el.querySelector("button").remove();
+        if (!(await doUpdate(r))) el.remove();
+      };
+      bars.appendChild(el);
+    };
+    run(); setInterval(run, 3600 * 1000);
+  }
+
+  window.vv = { init, section, startChecks, update: doUpdate };
+})();
+
+
+const $  = (s,k)=> (k||document).querySelector(s);
+const $$ = (s,k)=> Array.from((k||document).querySelectorAll(s));
+const ucini = s => (s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ogr = (v,a,b)=> Math.min(Math.max(v, a===undefined?0:a), b===undefined?1:b);
+const ikona = n => '<svg class="ik"><use href="#'+n+'"/></svg>';
+
+let PODACI=null, RED=[], TEKUCA=null, STAMPAC=null, KOREN_BIBL='';
+let IZVOR=new Image(), IZVOR_ZA=null, PRSTEN=new Image(), PRSTEN_OK=false;
+let PRIKAZI_POPUNU=false;
+let tPrsten=null, tIzvor=null, tTabak=null, tCrtanje=null, cekaj=null;
+
+const tekuca = ()=> RED.find(s=>s.id===TEKUCA) || null;
+
+/* ============================================ poruke u stilu aplikacije */
+function poruka(tekst, naslov){
+  $('#poruka-naslov').textContent = naslov || 'Obaveštenje';
+  $('#poruka-tekst').textContent = tekst;
+  $('#dij-poruka').showModal();
+}
+$('#poruka-ok').onclick = ()=> $('#dij-poruka').close();
+
+function potvrdi(tekst, naslov, dugme){
+  return new Promise(res=>{
+    const d=$('#dij-potvrda');
+    $('#potvrda-naslov').textContent = naslov || 'Potvrda';
+    $('#potvrda-tekst').textContent = tekst;
+    $('#potvrda-da').textContent = dugme || 'Obriši';
+    $('#potvrda-da').onclick=()=>{ d.close(); res(true); };
+    $('#potvrda-ne').onclick=()=>{ d.close(); res(false); };
+    d.showModal();
+  });
+}
+
+function pitajNaziv(predlog){
+  return new Promise(res=>{
+    const d=$('#dij-naziv'), p=$('#naziv-polje');
+    p.value=predlog||'';
+    const ok=()=>{ d.close(); res(p.value.trim()||null); };
+    const ne=()=>{ d.close(); res(null); };
+    $('#naziv-ok').onclick=ok;
+    $('#naziv-otkazi').onclick=ne;
+    p.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); ok(); } };
+    d.showModal(); p.focus(); p.select();
+  });
+}
+
+/* ============================================ učitavanje */
+async function povuci(){
+  PODACI = await (await fetch('/api/podaci')).json();
+  document.documentElement.dataset.tema = PODACI.app.tema || 'svetla';
+  const t = PODACI.podesavanja.tabak;
+  $('#lenjir').checked = !!t.lenjir;
+  $('#t-ivica').value = t.ivica;
+  $('#t-razmak').value = t.razmak;
+  RED = (PODACI.slike||[]).map(s=>({id:s.id, ime:s.ime, pod:s.pod, priprema:s.priprema}));
+  if(!TEKUCA || !RED.some(s=>s.id===TEKUCA)) TEKUCA = RED.length ? RED[0].id : null;
+  crtajRed();
+  crtajPopune();
+  osveziTabak();
+}
+
+/* ============================================ red */
+function crtajRed(){
+  const l=$('#red'); l.innerHTML='';
+  $('#broj').textContent = RED.length || '';
+  RED.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='stavka'+(s.id===TEKUCA?' izabrana':'');
+    b.innerHTML='<img src="/api/izvor/'+s.id+'?w=120" alt="">'
+               +'<span>'+ucini(s.ime)+'</span>'
+               +'<button class="x" aria-label="Ukloni">'+ikona('i-x')+'</button>';
+    b.onclick=e=>{
+      if(e.target.closest('.x')){ e.stopPropagation(); ukloni(s.id); return; }
+      TEKUCA=s.id; crtajRed();
+    };
+    l.appendChild(b);
+  });
+  const t=tekuca();
+  $('#ime-fajla').textContent = t ? t.ime : '—';
+  $('#dugme-sacuvaj').disabled = !t;
+  $('#dugme-stampaj').disabled = !RED.length;
+  $('#prazno').hidden = !!t;
+  $('#alatke').hidden = !t;
+  if(t){ ucitajPod(); ucitajIzvor(); osveziPrsten(); }
+  else { PRSTEN_OK=false; crtajPlatno(); }
+}
+async function ukloni(id){
+  await fetch('/api/slika/'+id,{method:'DELETE'});
+  RED=RED.filter(s=>s.id!==id);
+  if(TEKUCA===id) TEKUCA = RED.length ? RED[0].id : null;
+  crtajRed(); osveziPresete(); osveziTabak();
+}
+
+/* ============================================ biblioteka kao drvo */
+async function sadrzaj(put){
+  try { return await (await fetch('/api/pregledaj?put='+encodeURIComponent(put||''))).json(); }
+  catch(e){ return {ok:false}; }
+}
+function granaZa(ime, put, nivo){
+  const omot=document.createElement('div');
+  const g=document.createElement('button');
+  g.className='grana';
+  g.innerHTML=ikona('i-strelica').replace('class="ik"','class="ik strelica"')
+             + ikona('i-fascikla').replace('class="ik"','class="ik fas"')
+             + '<b>'+ucini(ime)+'</b>';
+  const deca=document.createElement('div');
+  deca.className='deca'; deca.hidden=true;
+  let ucitano=false;
+  g.onclick=async ()=>{
+    const otvara = deca.hidden;
+    g.classList.toggle('otvorena', otvara);
+    deca.hidden = !otvara;
+    if(otvara && !ucitano){ ucitano=true; await napuniGranu(deca, put, nivo+1); }
+  };
+  omot.appendChild(g); omot.appendChild(deca);
+  return {omot, deca, g};
+}
+async function napuniGranu(gde, put, nivo){
+  const d=await sadrzaj(put);
+  gde.innerHTML='';
+  if(!d.ok) return;
+  (d.fascikle||[]).forEach(f=>{
+    const {omot}=granaZa(f.ime, f.put, nivo);
+    gde.appendChild(omot);
+  });
+  (d.slike||[]).forEach(s=>{
+    const b=document.createElement('button');
+    b.className='list';
+    b.innerHTML='<img src="/api/slicica?put='+encodeURIComponent(s.put)+'" alt="">'
+               +'<span>'+ucini(s.ime)+'</span>';
+    b.onclick=async ()=>{
+      const r=await (await fetch('/api/otvori_iz_biblioteke',{method:'POST',
+        headers:{'Content-Type':'application/json'}, body:JSON.stringify({put:s.put})})).json();
+      if(!r.ok){ poruka(r.poruka||'Ne mogu da otvorim tu sliku.'); return; }
+      await povuci(); TEKUCA=r.slika.id; crtajRed(); osveziPresete();
+    };
+    gde.appendChild(b);
+  });
+  if(!gde.children.length){
+    const p=document.createElement('div');
+    p.className='poruka'; p.style.padding='3px 6px'; p.textContent='prazno';
+    gde.appendChild(p);
+  }
+}
+async function crtajDrvo(){
+  const d=await sadrzaj('');
+  KOREN_BIBL = d.koren || '';
+  const l=$('#drvo'); l.innerHTML='';
+  const ime = (KOREN_BIBL.split(/[\\/]/).filter(Boolean).pop()) || 'Biblioteka';
+  const {omot, deca, g} = granaZa(ime, '', 0);
+  g.title = KOREN_BIBL;
+  l.appendChild(omot);
+  g.classList.add('otvorena'); deca.hidden=false;      // koren je uvek otvoren
+  await napuniGranu(deca, '', 1);
+}
+
+/* ============================================ uvoz */
+$('#dugme-uvezi').onclick = ()=> $('#fajlovi').click();
+$('#fajlovi').onchange = e=>{ posaljiFajlove(e.target.files); e.target.value=''; };
+async function posaljiFajlove(lista){
+  if(!lista || !lista.length) return;
+  const fd=new FormData();
+  for(const f of lista) fd.append('fajl', f);
+  const d=$('#dugme-uvezi'); d.disabled=true; d.textContent='Uvozim…';
+  let r=null;
+  try{ r=await (await fetch('/api/uvoz',{method:'POST',body:fd})).json(); }
+  catch(err){ poruka('Uvoz nije uspeo: '+err); }
+  d.disabled=false; d.textContent='Uvezi';
+  if(!r) return;
+  if(r.odbijene && r.odbijene.length)
+    poruka('Ovo nisam uspeo da otvorim:\n'+r.odbijene.map(x=>'· '+x.ime).join('\n'));
+  if(r.dodate && r.dodate.length){
+    await povuci();
+    TEKUCA=r.dodate[r.dodate.length-1].id;
+    crtajRed(); osveziPresete();
+  }
+}
+const scena=$('#scena');
+['dragenter','dragover'].forEach(d=> scena.addEventListener(d, e=>{
+  e.preventDefault(); scena.classList.add('pada'); }));
+['dragleave','drop'].forEach(d=> scena.addEventListener(d, e=>{
+  e.preventDefault(); if(d==='drop'||e.target===scena) scena.classList.remove('pada'); }));
+scena.addEventListener('drop', e=>{
+  e.preventDefault(); scena.classList.remove('pada');
+  if(e.dataTransfer && e.dataTransfer.files.length) posaljiFajlove(e.dataTransfer.files);
+});
+window.addEventListener('dragover', e=>e.preventDefault());
+window.addEventListener('drop', e=>e.preventDefault());
+
+/* ============================================ editor */
+const platno=$('#platno'), ctx=platno.getContext('2d');
+const LENJIR=26;
+let VID={x:0,y:0,w:0,h:0}, MM=1;
+
+function kljucIzvora(t){
+  return [t.pod.crna,t.pod.bela,t.pod.zasicenje,t.pod.jasnoca,t.pod.preset,
+          t.pod.jacina_preseta,t.pod.obrezi_rub,t.pod.rotacija,t.pod.ogledalo].join(',');
+}
+function ucitajIzvor(){
+  const t=tekuca(); if(!t) return;
+  const url='/api/izvor/'+t.id+'?w=1100&v='+encodeURIComponent(kljucIzvora(t));
+  if(IZVOR_ZA===url){ crtajPlatno(); return; }
+  IZVOR_ZA=url;
+  const im=new Image();
+  im.onload=()=>{ if(IZVOR_ZA===url){ IZVOR=im; crtajPlatno(); } };
+  im.src=url;
+}
+function osveziPrsten(){
+  if(!PRIKAZI_POPUNU){ return; }
+  clearTimeout(tPrsten);
+  tPrsten=setTimeout(()=>{
+    const t=tekuca(); if(!t) return;
+    const im=new Image();
+    im.onload=()=>{ PRSTEN=im; PRSTEN_OK=true; crtajPlatno(); };
+    im.onerror=()=>{ PRSTEN_OK=false; };
+    im.src='/api/pregled/'+t.id+'?dpi=70&t='+Date.now();
+  }, 120);
+}
+
+function velicinaPlatna(){
+  const s=scena.getBoundingClientRect();
+  const dpr=Math.min(2, window.devicePixelRatio||1);
+  const w=Math.max(120,Math.floor(s.width-20)), h=Math.max(120,Math.floor(s.height-20));
+  platno.style.width=w+'px'; platno.style.height=h+'px';
+  platno.width=Math.floor(w*dpr); platno.height=Math.floor(h*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {w,h};
+}
+
+function crtajPlatno(){
+  const t=tekuca();
+  const {w:SW,h:SH}=velicinaPlatna();
+  ctx.clearRect(0,0,SW,SH);
+  if(!t || !IZVOR.width || !PODACI) return;
+  const r=PODACI.ram;
+
+  // okvir je namerno manji od raspolozivog prostora, da slika oko njega dise
+  const px=SW-LENJIR-24, py=SH-LENJIR-24;
+  let pw=px*0.76, ph=pw*r.puna[1]/r.puna[0];
+  if(ph>py*0.76){ ph=py*0.76; pw=ph*r.puna[0]/r.puna[1]; }
+  const ox=LENJIR+(px-pw)/2+12, oy=LENJIR+(py-ph)/2+12;
+  MM=pw/r.puna[0];
+  VID={x:ox+(r.napust+r.preklop[0])*MM, y:oy+(r.napust+r.preklop[1])*MM,
+       w:r.prozor[0]*MM, h:r.prozor[1]*MM};
+  const rez={x:ox+r.napust*MM, y:oy+r.napust*MM, w:r.rez[0]*MM, h:r.rez[1]*MM};
+  const puna={x:ox, y:oy, w:pw, h:ph};
+
+  // 1) cela slika, i izvan okvira - da se vidi sta otpada
+  const g=geom(t);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(LENJIR,LENJIR,SW-LENJIR,SH-LENJIR); ctx.clip();
+  if(g.zum<1){
+    ctx.fillStyle=t.pod.boja_pozadine||'#FFFFFF';
+    ctx.fillRect(VID.x,VID.y,VID.w,VID.h);
+  }
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(IZVOR, g.x, g.y, g.nw, g.nh);
+
+  // 2) kad se bira popuna, preko prstena ide stvaran otisak
+  if(PRIKAZI_POPUNU && PRSTEN_OK && PRSTEN.width){
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(puna.x,puna.y,puna.w,puna.h);
+    ctx.rect(VID.x,VID.y,VID.w,VID.h);
+    ctx.clip('evenodd');
+    ctx.drawImage(PRSTEN, puna.x, puna.y, puna.w, puna.h);
+    ctx.restore();
+  }
+
+  // 3) zatamnjenja - samo preko slike i okvira, prazna scena ostaje svetla
+  const ux=Math.min(g.x,puna.x), uy=Math.min(g.y,puna.y);
+  const ux2=Math.max(g.x+g.nw,puna.x+puna.w), uy2=Math.max(g.y+g.nh,puna.y+puna.h);
+  ctx.fillStyle='rgba(18,16,13,.5)';
+  prsten(ux,uy,ux2-ux,uy2-uy, rez.x,rez.y,rez.w,rez.h);
+  ctx.fillStyle='rgba(18,16,13,.26)';
+  prsten(rez.x,rez.y,rez.w,rez.h, VID.x,VID.y,VID.w,VID.h);
+  ctx.restore();
+
+  // 4) linije
+  ctx.lineWidth=1; ctx.setLineDash([5,4]); ctx.strokeStyle='rgba(255,253,248,.62)';
+  ctx.strokeRect(rez.x+.5, rez.y+.5, rez.w-1, rez.h-1);
+  ctx.setLineDash([]); ctx.lineWidth=1.5; ctx.strokeStyle='rgba(255,253,248,.95)';
+  ctx.strokeRect(VID.x+.5, VID.y+.5, VID.w-1, VID.h-1);
+
+  crtajLenjire(SW,SH,rez);
+}
+
+function geom(t){
+  // identicno obrada.smesti(): skala koja pokriva prozor, pomnozena zumom
+  const W=IZVOR.width, H=IZVOR.height;
+  const zum=Math.max(0.05, t.pod.zum||1);
+  const s=Math.max(VID.w/W, VID.h/H)*zum;
+  const nw=W*s, nh=H*s;
+  return {W,H,zum,nw,nh,
+          x: VID.x+(VID.w-nw)*ogr(t.pod.pomak_x),
+          y: VID.y+(VID.h-nh)*ogr(t.pod.pomak_y)};
+}
+function prsten(X,Y,W,H, x,y,w,h){
+  ctx.beginPath(); ctx.rect(X,Y,W,H); ctx.rect(x,y,w,h); ctx.fill('evenodd');
+}
+
+/* --- lenjir u stilu Worda: traka, sitne crtice, retki brojevi --- */
+function crtajLenjire(SW,SH,rez){
+  const r=PODACI.ram, st=getComputedStyle(document.documentElement);
+  const traka=st.getPropertyValue('--traka').trim();
+  const ivica=st.getPropertyValue('--ivica').trim();
+  const boja=st.getPropertyValue('--prigusen').trim();
+  const nag=st.getPropertyValue('--naglasak').trim();
+  const poz=st.getPropertyValue('--scena').trim();
+
+  ctx.fillStyle=poz; ctx.fillRect(0,0,SW,LENJIR); ctx.fillRect(0,0,LENJIR,SH);
+  // traka pokriva samo raspon otiska, kao margina u Wordu
+  ctx.fillStyle=traka;
+  ctx.fillRect(rez.x, 4, rez.w, LENJIR-9);
+  ctx.fillRect(4, rez.y, LENJIR-9, rez.h);
+  ctx.strokeStyle=ivica; ctx.lineWidth=1;
+  ctx.strokeRect(rez.x+.5, 4.5, rez.w-1, LENJIR-10);
+  ctx.strokeRect(4.5, rez.y+.5, LENJIR-10, rez.h-1);
+  // raspon prozora je naglasen
+  ctx.fillStyle=color_mix(nag, .34);
+  ctx.fillRect(VID.x, 4, VID.w, LENJIR-9);
+  ctx.fillRect(4, VID.y, LENJIR-9, VID.h);
+
+  ctx.strokeStyle=boja; ctx.fillStyle=boja;
+  ctx.font='9px ui-sans-serif,-apple-system,Segoe UI,sans-serif';
+  const korak = MM*5>9 ? 5 : 10;
+  const dno=LENJIR-5;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(let mm=0; mm<=r.rez[0]+0.01; mm+=korak){
+    const x=Math.round(rez.x+mm*MM)+.5;
+    if(mm%10===0 && MM*10>20){ ctx.fillText(String(mm), x, LENJIR/2-.5); }
+    else { ctx.beginPath(); ctx.moveTo(x,dno); ctx.lineTo(x,dno-3); ctx.stroke(); }
+  }
+  for(let mm=0; mm<=r.rez[1]+0.01; mm+=korak){
+    const y=Math.round(rez.y+mm*MM)+.5;
+    if(mm%10===0 && MM*10>20){
+      ctx.save(); ctx.translate(LENJIR/2-.5,y); ctx.rotate(-Math.PI/2);
+      ctx.fillText(String(mm),0,0); ctx.restore();
+    } else { ctx.beginPath(); ctx.moveTo(dno,y); ctx.lineTo(dno-3,y); ctx.stroke(); }
+  }
+}
+function color_mix(boja, alfa){
+  const m=boja.trim();
+  if(m.startsWith('#')){
+    const n=m.length===4 ? m.replace(/#(.)(.)(.)/,'#$1$1$2$2$3$3') : m;
+    const v=parseInt(n.slice(1),16);
+    return 'rgba('+((v>>16)&255)+','+((v>>8)&255)+','+(v&255)+','+alfa+')';
+  }
+  return m;
+}
+
+/* --- vuci i zumiraj --- */
+let vuce=null;
+platno.addEventListener('pointerdown', e=>{
+  const t=tekuca(); if(!t) return;
+  platno.setPointerCapture(e.pointerId); platno.classList.add('vuce');
+  vuce={x:e.clientX,y:e.clientY,px:t.pod.pomak_x,py:t.pod.pomak_y};
+});
+platno.addEventListener('pointermove', e=>{
+  if(!vuce) return;
+  const t=tekuca(); if(!t||!IZVOR.width) return;
+  const g=geom(t);
+  const slobX=VID.w-g.nw, slobY=VID.h-g.nh;        // predznak resava smer
+  const dx=e.clientX-vuce.x, dy=e.clientY-vuce.y;
+  t.pod.pomak_x = Math.abs(slobX)>1 ? ogr(vuce.px+dx/slobX) : 0.5;
+  t.pod.pomak_y = Math.abs(slobY)>1 ? ogr(vuce.py+dy/slobY) : 0.5;
+  crtajPlatno();
+});
+function krajVuce(){ if(!vuce) return; vuce=null; platno.classList.remove('vuce');
+  posalji().then(osveziPrsten); }
+platno.addEventListener('pointerup', krajVuce);
+platno.addEventListener('pointercancel', krajVuce);
+platno.addEventListener('wheel', e=>{
+  const t=tekuca(); if(!t) return;
+  e.preventDefault();
+  const novi=ogr((t.pod.zum||1)*(e.deltaY<0?1.08:1/1.08), 0.25, 3);
+  if(Math.abs(novi-(t.pod.zum||1))<1e-4) return;
+  t.pod.zum=novi; postaviZum(novi);
+  crtajPlatno(); posalji().then(osveziPrsten);
+}, {passive:false});
+platno.addEventListener('dblclick', ()=>{
+  const t=tekuca(); if(!t) return;
+  t.pod.zum=1; t.pod.pomak_x=0.5; t.pod.pomak_y=0.5;
+  ucitajPod(); crtajPlatno(); posalji().then(osveziPrsten);
+});
+new ResizeObserver(()=>{ clearTimeout(tCrtanje); tCrtanje=setTimeout(crtajPlatno,60); })
+  .observe(scena);
+
+$$('[data-rot]').forEach(b=> b.onclick=async ()=>{
+  const t=tekuca(); if(!t) return;
+  t.pod.rotacija=(((t.pod.rotacija||0)+(+b.dataset.rot))%360+360)%360;
+  await posalji();                 // tek kad server zna, trazi novu sliku
+  IZVOR_ZA=null; ucitajIzvor(); osveziPrsten(); osveziTabak();
+});
+$('#ogledalo').onclick = async ()=>{
+  const t=tekuca(); if(!t) return;
+  t.pod.ogledalo=!t.pod.ogledalo;
+  await posalji();
+  IZVOR_ZA=null; ucitajIzvor(); osveziPrsten(); osveziTabak();
+};
+
+/* ============================================ podešavanja slike */
+function postaviZum(v){
+  $('#b-zum').value=Math.round(v*100);
+  $('#v-zum').textContent=v.toFixed(2)+'×';
+  $('#grupa-pozadine').hidden = v>=1;
+}
+function ucitajPod(){
+  const t=tekuca(); if(!t) return;
+  const p=t.pod;
+  $('#b-crna').value=p.crna<0?0:p.crna;
+  $('#b-bela').value=p.bela<0?255:p.bela;
+  $('#b-zas').value=Math.round((p.zasicenje||1)*100);
+  $('#b-jas').value=p.jasnoca;
+  $('#b-jacina').value=p.jacina_preseta;
+  $('#v-crna').textContent=p.crna<0?'auto':(+p.crna).toFixed(0);
+  $('#v-bela').textContent=p.bela<0?'auto':(+p.bela).toFixed(0);
+  $('#v-zas').textContent=(+p.zasicenje).toFixed(2);
+  $('#v-jas').textContent=p.jasnoca;
+  $('#v-jacina').textContent=p.jacina_preseta+' %';
+  $('#grupa-jacine').hidden = (p.preset==='original');
+  postaviZum(p.zum||1);
+  $('#grupa-boje-popune').hidden=(p.popuna!=='boja');
+  $('#boja-birac').value=p.boja_popune||'#FFFFFF';
+  $('#boja-tekst').textContent=(p.boja_popune||'#FFFFFF').toUpperCase();
+  $$('.plocica[data-preset]').forEach(x=>x.classList.toggle('aktivna', x.dataset.preset===p.preset));
+  $$('.plocica[data-popuna]').forEach(x=>x.classList.toggle('aktivna', x.dataset.popuna===p.popuna));
+  obelezi('#bojice', p.boja_popune);
+  obelezi('#bojice-pozadine', p.boja_pozadine);
+}
+function posalji(){
+  const t=tekuca(); if(!t) return Promise.resolve();
+  clearTimeout(cekaj);
+  return new Promise(res=>{
+    cekaj=setTimeout(async ()=>{
+      try{ await fetch('/api/podesi/'+t.id,{method:'POST',
+        headers:{'Content-Type':'application/json'}, body:JSON.stringify(t.pod)}); }
+      catch(e){}
+      res();
+    }, 120);
+  });
+}
+function pomeriBoju(){
+  const t=tekuca(); if(!t) return;
+  t.pod.crna=+$('#b-crna').value; t.pod.bela=+$('#b-bela').value;
+  t.pod.zasicenje=(+$('#b-zas').value)/100; t.pod.jasnoca=+$('#b-jas').value;
+  $('#v-crna').textContent=t.pod.crna.toFixed(0);
+  $('#v-bela').textContent=t.pod.bela.toFixed(0);
+  $('#v-zas').textContent=t.pod.zasicenje.toFixed(2);
+  $('#v-jas').textContent=t.pod.jasnoca;
+  osveziPosle();
+}
+['#b-crna','#b-bela','#b-zas','#b-jas'].forEach(s=> $(s).oninput=pomeriBoju);
+$('#b-jacina').oninput = ()=>{
+  const t=tekuca(); if(!t) return;
+  t.pod.jacina_preseta=+$('#b-jacina').value;
+  $('#v-jacina').textContent=t.pod.jacina_preseta+' %';
+  osveziPosle();
+};
+function osveziPosle(){
+  IZVOR_ZA=null;
+  posalji().then(()=>{ clearTimeout(tIzvor);
+    tIzvor=setTimeout(()=>{ ucitajIzvor(); osveziPrsten(); osveziTabak(); },120); });
+}
+$('#b-zum').oninput = ()=>{
+  const t=tekuca(); if(!t) return;
+  t.pod.zum=(+$('#b-zum').value)/100;
+  postaviZum(t.pod.zum);
+  crtajPlatno(); posalji().then(()=>{ osveziPrsten(); osveziTabak(); });
+};
+$('#auto-sve').onclick = async ()=>{
+  const t=tekuca(); if(!t) return;
+  const b=$('#auto-sve'); b.disabled=true; b.textContent='Računam…';
+  try{
+    const r=await (await fetch('/api/auto/'+t.id,{method:'POST'})).json();
+    if(r.ok){ t.pod=r.pod; ucitajPod(); IZVOR_ZA=null; ucitajIzvor(); osveziPrsten(); }
+  } finally { b.disabled=false; b.textContent='Automatski sredi sliku'; }
+};
+
+/* ============================================ preseti */
+function osveziPresete(){
+  $$('.plocica[data-preset] img').forEach(im=>{
+    im.src='/api/preset_slika/'+im.closest('.plocica').dataset.preset+'?t='+Date.now(); });
+  $$('.plocica[data-popuna] img').forEach(im=>{
+    im.src='/api/popuna_slika/'+im.closest('.plocica').dataset.popuna+'?t='+Date.now(); });
+}
+function crtajPresete(){
+  const d=$('#plocice-preseta'); d.innerHTML='';
+  (PODACI.preseti||[]).forEach(p=>{
+    const b=document.createElement('button');
+    b.className='plocica'; b.dataset.preset=p.kljuc;
+    b.innerHTML='<img src="/api/preset_slika/'+p.kljuc+'" alt="" loading="lazy">'
+               +'<span>'+ucini(p.ime)+'</span>';
+    b.onclick=async ()=>{
+      const t=tekuca(); if(!t) return;
+      t.pod.preset=p.kljuc;
+      $$('.plocica[data-preset]').forEach(x=>x.classList.toggle('aktivna',x===b));
+      $('#grupa-jacine').hidden=(p.kljuc==='original');
+      osveziPosle();
+    };
+    d.appendChild(b);
+  });
+}
+
+/* ============================================ preklop */
+const BOJE=['#FFFFFF','#F2ECE0','#C9B48B','#8A5A3B','#2F4A3C','#2B3A55','#7E2C2C','#111111'];
+function paleta(gde, polje){
+  const d=$(gde); d.innerHTML='';
+  BOJE.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='bojica'; b.style.background=c; b.dataset.boja=c; b.title=c;
+    b.onclick=()=> postaviBoju(polje, c, gde);
+    d.appendChild(b);
+  });
+}
+function obelezi(gde, boja){
+  $$('.bojica', $(gde)).forEach(b=>
+    b.classList.toggle('aktivna',(b.dataset.boja||'').toUpperCase()===(boja||'').toUpperCase()));
+}
+async function postaviBoju(polje, c, gde){
+  const t=tekuca(); if(!t) return;
+  t.pod[polje]=c;
+  if(gde) obelezi(gde,c);
+  if(polje==='boja_popune'){
+    $('#boja-birac').value=c; $('#boja-tekst').textContent=c.toUpperCase();
+  }
+  crtajPlatno();
+  await posalji(); osveziPrsten(); osveziPresete(); osveziTabak();
+}
+$('#boja-birac').oninput = ()=> postaviBoju('boja_popune', $('#boja-birac').value, '#bojice');
+$('#pipeta').onclick = async ()=>{
+  if(!window.EyeDropper){ poruka('Ovaj pregledač nema pipetu. Izaberi boju iz palete.'); return; }
+  try{
+    const r=await new EyeDropper().open();
+    postaviBoju('boja_popune', r.sRGBHex, '#bojice');
+  }catch(e){}
+};
+function crtajPopune(){
+  const d=$('#plocice-popune');
+  if(d.children.length) return;
+  (PODACI.popune||[]).forEach(p=>{
+    const b=document.createElement('button');
+    b.className='plocica traka'; b.dataset.popuna=p.kljuc;
+    b.innerHTML='<img src="/api/popuna_slika/'+p.kljuc+'" alt="" loading="lazy">'
+               +'<span>'+ucini(p.ime)+'</span>';
+    b.onclick=async ()=>{
+      const t=tekuca(); if(!t) return;
+      t.pod.popuna=p.kljuc;
+      $$('.plocica[data-popuna]').forEach(x=>x.classList.toggle('aktivna',x===b));
+      $('#grupa-boje-popune').hidden=(p.kljuc!=='boja');
+      await posalji(); osveziPrsten(); osveziTabak();
+    };
+    d.appendChild(b);
+  });
+  paleta('#bojice','boja_popune');
+  paleta('#bojice-pozadine','boja_pozadine');
+}
+
+/* ============================================ tabak */
+function osveziTabak(){
+  clearTimeout(tTabak);
+  tTabak=setTimeout(()=>{
+    const R=PODACI.raspored;
+    $('#kopija').max=Math.max(1,R.po_tabaku);
+    if(+$('#kopija').value>R.po_tabaku) $('#kopija').value=R.po_tabaku;
+    $('#v-kopija').textContent=$('#kopija').value;
+    $('#slika-tabaka').src='/api/tabak_pregled?lenjir='+($('#lenjir').checked?1:0)
+      +'&kopija='+$('#kopija').value+'&ids='+RED.map(s=>s.id).join(',')+'&t='+Date.now();
+  }, 60);
+}
+$('#kopija').oninput = ()=>{ $('#v-kopija').textContent=$('#kopija').value; osveziTabak(); };
+$('#lenjir').onchange = async ()=>{
+  await fetch('/api/app',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({lenjir:$('#lenjir').checked})});
+  $('#p-lenjir').checked=$('#lenjir').checked; await povuci();
+};
+async function upisiTabak(){
+  await fetch('/api/app',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ivica:Math.max(3,+$('#t-ivica').value||10),
+                         razmak:Math.max(5,+$('#t-razmak').value||12)})});
+  await povuci();
+}
+$('#t-ivica').onchange=upisiTabak;
+$('#t-razmak').onchange=upisiTabak;
+$('#dugme-maks').onclick = async ()=>{
+  const r=await (await fetch('/api/tabak_maks',{method:'POST'})).json();
+  if(r.ok) await povuci();
+};
+
+/* ============================================ štampač */
+const KRATKI={1:'Običan papir',326:'Mat foto papir',325:'Sjajni foto papir'};
+function papiriZa(s){
+  let p=s.papiri||[];
+  if(!(PODACI.app||{}).svi_papiri)
+    p=p.filter(x=>KRATKI[x.sifra]).map(x=>({sifra:x.sifra, ime:KRATKI[x.sifra]}));
+  return p;
+}
+function puniSelect(sel, stavke, izabrano, kljuc, nazivPolje){
+  sel.innerHTML='';
+  stavke.forEach(x=>{
+    const o=document.createElement('option');
+    o.value=x[kljuc]; o.textContent=x[nazivPolje];
+    if(String(x[kljuc])===String(izabrano)) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+async function povuciStampac(){
+  let s;
+  try{ s=await (await fetch('/api/stampaci')).json(); }
+  catch(e){ s={ok:false,poruka:'Štampa nije dostupna na ovoj mašini.'}; }
+  STAMPAC=s;
+  if(!s.ok){ $('#opis-stampaca').textContent=s.poruka||'Štampač nije dostupan.'; return; }
+  puniSelect($('#izbor-stampaca'), s.stampaci, s.izabrani, 'ime', 'ime');
+  const pap=papiriZa(s);
+  puniSelect($('#izbor-papira'), pap, s.medij ?? (pap[0]||{}).sifra, 'sifra', 'ime');
+  if(s.medij===null || s.medij===undefined) zapamtiStampac();
+}
+async function zapamtiStampac(){
+  await fetch('/api/stampac',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({sistemsko_ime:$('#izbor-stampaca').value,
+      medij:$('#izbor-papira').value,
+      papir:$('#izbor-papira').selectedOptions[0]?.textContent||''})});
+}
+$('#izbor-papira').onchange=zapamtiStampac;
+$('#izbor-stampaca').onchange=async ()=>{ await zapamtiStampac(); povuciStampac(); };
+
+/* ============================================ tabovi */
+$$('#tabovi button').forEach(b=> b.onclick=()=>{
+  $$('#tabovi button').forEach(x=>x.classList.toggle('aktivan',x===b));
+  $$('[data-panel]').forEach(p=> p.hidden=(p.dataset.panel!==b.dataset.tab));
+  PRIKAZI_POPUNU = (b.dataset.tab==='preklop');
+  if(b.dataset.tab==='tabak') osveziTabak();
+  if(PRIKAZI_POPUNU) osveziPrsten(); else crtajPlatno();
+});
+
+/* ============================================ štampa */
+function sveIdeve(){
+  return $('#s-opseg').value==='sve' ? RED.map(s=>s.id) : [TEKUCA].filter(Boolean);
+}
+async function osveziSazetak(){
+  const ids=sveIdeve(), kop=+$('#s-kopija').value;
+  const R=PODACI.raspored, po=Math.max(1,R.po_tabaku);
+  const uk=ids.length*kop;
+  $('#s-otisaka').textContent=uk;
+  $('#s-tabaka').textContent=Math.max(1, Math.ceil(uk/po));
+  $('#pregled-stampe').src='/api/pregled/'+(ids[0]||TEKUCA)+'?dpi=100&t='+Date.now();
+}
+$('#dugme-stampaj').onclick = async ()=>{
+  if(!RED.length) return;
+  const o=$('#s-opseg'); o.innerHTML='';
+  const t=tekuca();
+  [['tekuca','Samo '+(t?t.ime:'tekuća slika')],
+   ['sve','Sve iz reda ('+RED.length+')']].forEach(([v,n])=>{
+    const e=document.createElement('option'); e.value=v; e.textContent=n; o.appendChild(e);
+  });
+  if(STAMPAC && STAMPAC.ok){
+    puniSelect($('#s-stampac'), STAMPAC.stampaci, STAMPAC.izabrani, 'ime','ime');
+    const pap=papiriZa(STAMPAC);
+    puniSelect($('#s-papir'), pap, STAMPAC.medij ?? (pap[0]||{}).sifra, 'sifra','ime');
+    $('#s-poruka').textContent=''; $('#stampa-potvrdi').disabled=false;
+  } else {
+    $('#s-stampac').innerHTML='<option>—</option>';
+    $('#s-papir').innerHTML='<option>—</option>';
+    $('#s-poruka').textContent='Štampa nije dostupna na ovoj mašini — napravi PDF.';
+    $('#stampa-potvrdi').disabled=true;
+  }
+  $('#s-kopija').max=Math.max(1,PODACI.raspored.po_tabaku);
+  $('#s-kopija').value=Math.min(+$('#kopija').value||1, PODACI.raspored.po_tabaku);
+  $('#s-kopija-v').textContent=$('#s-kopija').value;
+  await osveziSazetak();
+  $('#dij-stampa').showModal();
+};
+$('#s-kopija').oninput=()=>{ $('#s-kopija-v').textContent=$('#s-kopija').value; osveziSazetak(); };
+$('#s-opseg').onchange=osveziSazetak;
+$('#stampa-odustani').onclick=()=> $('#dij-stampa').close();
+$('#stampa-potvrdi').onclick = async ()=>{
+  const b=$('#stampa-potvrdi'); b.disabled=true; b.textContent='Šaljem…';
+  let r;
+  try{
+    await fetch('/api/stampac',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sistemsko_ime:$('#s-stampac').value, medij:$('#s-papir').value,
+        papir:$('#s-papir').selectedOptions[0]?.textContent||''})});
+    r=await (await fetch('/api/stampaj',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ids:sveIdeve(), kopija:+$('#s-kopija').value,
+                           lenjir:$('#lenjir').checked})})).json();
+  }catch(e){ r={ok:false, poruka:String(e)}; }
+  b.disabled=false; b.textContent='Pošalji na štampač';
+  $('#dij-stampa').close();
+  if(r.ok) poruka('Poslato na štampač: '+(r.tabaka||1)+' list(a), '
+                  +(r.po_tabaku||'?')+' po listu.'
+                  +((r.upozorenja&&r.upozorenja.length)?'\n'+r.upozorenja.join('\n'):''),
+                  'Štampa');
+  else poruka(r.poruka||'Štampa nije uspela.', 'Štampa nije uspela');
+};
+
+$('#dugme-pdf').onclick = async ()=>{
+  if(!RED.length) return;
+  const b=$('#dugme-pdf'); b.disabled=true; b.textContent='Pravim PDF…';
+  try{
+    const r=await (await fetch('/api/pdf',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ids:RED.map(s=>s.id), kopija:+$('#kopija').value,
+                           lenjir:$('#lenjir').checked})})).json();
+    if(r.ime) window.open('/api/preuzmi/'+r.ime,'_blank');
+    else poruka(r.greska||'PDF nije napravljen.');
+  }catch(e){ poruka('PDF nije napravljen: '+e); }
+  b.disabled=false; b.textContent='Napravi PDF umesto štampe';
+};
+
+$('#dugme-ugasi').onclick = async ()=>{
+  if(!await potvrdi('Ugasiti Košnicu Print?', 'Gašenje', 'Ugasi')) return;
+  try{ await fetch('/api/ugasi',{method:'POST'}); }catch(e){}
+  window.close();
+  document.body.innerHTML='<div style="display:grid;place-items:center;height:100dvh;'
+    +'font:14px sans-serif;color:#7A7265">Aplikacija je zaustavljena.</div>';
+};
+
+/* ============================================ čuvanje pripreme */
+$('#dugme-sacuvaj').onclick = async ()=>{
+  const t=tekuca(); if(!t) return;
+  const naziv=await pitajNaziv(t.ime.replace(/\.[^.]+$/,''));
+  if(!naziv) return;
+  const r=await (await fetch('/api/biblioteka/sacuvaj',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({id:t.id, naziv:naziv})})).json();
+  if(!r.ok){ poruka(r.poruka||'Nije sačuvano.'); return; }
+  t.priprema=r.zapis.fascikla;
+  crtajDrvo();
+};
+
+/* ============================================ dnevnik */
+let tDnevnik=null;
+
+async function ucitajDnevnik(){
+  const u=new URLSearchParams({dana:$('#dnevnik-dana').value, koliko:800});
+  if($('#dnevnik-greske').checked) u.set('greske','1');
+  const q=$('#dnevnik-trazi').value.trim();
+  if(q) u.set('trazi',q);
+  const r=await (await fetch('/api/dnevnik?'+u)).json();
+  const p=$('#dnevnik-telo');
+  p.textContent=(r.redovi||[]).join('\n') || 'Nema redova za ovaj filter.';
+  p.parentElement.scrollTop=p.parentElement.scrollHeight;
+  prikaziVelicinu(r);
+}
+
+function prikaziVelicinu(r){
+  const t=r.mb.toFixed(1).replace('.',',')+' MB · '+r.fajlova+' fajl'+(r.fajlova===1?'':'ova');
+  $('#dnevnik-velicina').textContent=t;
+  $('#pod-dnevnik-mb').textContent='dnevnik '+t;
+}
+
+$('#dugme-dnevnik').onclick=async ()=>{ await ucitajDnevnik(); $('#dij-dnevnik').showModal(); };
+$('#dnevnik-osvezi').onclick=ucitajDnevnik;
+$('#dnevnik-zatvori').onclick=()=> $('#dij-dnevnik').close();
+$('#dnevnik-dana').onchange=ucitajDnevnik;
+$('#dnevnik-greske').onchange=ucitajDnevnik;
+$('#dnevnik-trazi').oninput=()=>{ clearTimeout(tDnevnik); tDnevnik=setTimeout(ucitajDnevnik,250); };
+
+$('#dnevnik-obrisi').onclick=async ()=>{
+  const d=$('#dnevnik-starost').value;
+  if(!await potvrdi('Obrisati zapise starije od '+d+' dana?',
+                    'Dnevnik','Obriši')) return;
+  const r=await (await fetch('/api/dnevnik?stariji_od='+d,{method:'DELETE'})).json();
+  await ucitajDnevnik();
+  if(!r.obrisano) poruka('Nema zapisa starijih od '+d+' dana.','Dnevnik');
+};
+
+/* ============================================ podešavanja */
+const dij=$('#dij-podesavanja');
+let RAM_INDEKS=0;
+$('#dugme-podesavanja').onclick=()=>{ napuniPodesavanja(); dij.showModal(); ucitajOAppu(); };
+
+async function ucitajOAppu(){
+  try{
+    const h=await (await fetch('/health')).json();
+    $('#oznaka-verzije').textContent=h.oznaka||h.app;
+    const vb=$('#ver-box'); vb.querySelectorAll('.vv-row').forEach(e=>e.remove()); vv.section(vb, h.oznaka||h.app);
+    const r=await (await fetch('/api/dnevnik?dana=1&koliko=1')).json();
+    prikaziVelicinu(r);
+  }catch(e){}
+}
+$('#zatvori-pod').onclick=()=> dij.close();
+vv.init({storeKey:'kosnica-print'}); vv.startChecks($('#vv-bars'));
+
+function napuniPodesavanja(){
+  const d=PODACI.podesavanja, a=PODACI.app;
+  RAM_INDEKS=d.izabrani_ram;
+  crtajListuRamova();
+  $$('.tema-dugme').forEach(b=> b.classList.toggle('aktivna', b.dataset.tema===a.tema));
+  $('#p-biblioteka').value=a.biblioteka||'';
+  $('#p-svi-papiri').checked=!!a.svi_papiri;
+  $('#p-lenjir').checked=!!d.tabak.lenjir;
+  const st=d.stampaci[d.izabrani_stampac];
+  $('#k-faktor').value=(st.kalibracija/100).toFixed(4)+'  ('+st.kalibracija.toFixed(2)+' %)';
+  $('#k-izmereno').value=d.tabak.lenjir_duzina||150;
+  $('#poruka-rama').textContent='';
+  povuciStampac();
+}
+function crtajListuRamova(){
+  const l=$('#lista-ramova'); l.innerHTML='';
+  PODACI.podesavanja.ramovi.forEach((r,i)=>{
+    const b=document.createElement('button');
+    b.className='ram-red'+(i===RAM_INDEKS?' izabran':'');
+    const aktivan=(i===PODACI.podesavanja.izabrani_ram);
+    b.innerHTML='<input type="checkbox" '+(aktivan?'checked':'')+' tabindex="-1">'
+      +'<b>'+ucini(r.naziv)+'</b><span class="mono">'
+      +r.prozor_s.toFixed(1)+'×'+r.prozor_v.toFixed(1)+'</span>';
+    b.onclick=async ()=>{
+      RAM_INDEKS=i;
+      await fetch('/api/izaberi_ram/'+i,{method:'POST'});
+      await povuci();
+      crtajListuRamova(); napuniPoljaRama();
+      IZVOR_ZA=null; ucitajIzvor(); osveziPrsten(); osveziPresete();
+    };
+    l.appendChild(b);
+  });
+  napuniPoljaRama();
+}
+function napuniPoljaRama(){
+  const r=PODACI.podesavanja.ramovi[RAM_INDEKS];
+  $('#naslov-rama').textContent = r ? 'Mere rama — '+r.naziv : 'Nov ram';
+  $('#obrisi-ram').disabled = !r || PODACI.podesavanja.ramovi.length<=1;
+  if(!r) return;
+  $('#r-naziv').value=r.naziv; $('#r-ps').value=r.prozor_s; $('#r-pv').value=r.prozor_v;
+  $('#r-rs').value=r.rez_s; $('#r-rv').value=r.rez_v;
+  $('#r-nap').value=r.napust; $('#r-ostro').value=r.ostro;
+}
+function prazanObrazac(){
+  RAM_INDEKS=-1;
+  ['#r-naziv','#r-ps','#r-pv','#r-rs','#r-rv'].forEach(s=> $(s).value='');
+  $('#r-nap').value=3; $('#r-ostro').value=1.5;
+  $('#naslov-rama').textContent='Nov ram';
+  $('#obrisi-ram').disabled=true;
+  $$('.ram-red').forEach(x=>x.classList.remove('izabran'));
+}
+$('#nov-ram').onclick=()=>{ prazanObrazac(); $('#poruka-rama').textContent=''; $('#r-naziv').focus(); };
+$('#sacuvaj-ram').onclick = async ()=>{
+  const telo={indeks:RAM_INDEKS, naziv:$('#r-naziv').value,
+    prozor_s:+$('#r-ps').value, prozor_v:+$('#r-pv').value,
+    rez_s:+$('#r-rs').value, rez_v:+$('#r-rv').value,
+    napust:+$('#r-nap').value, ostro:+$('#r-ostro').value, izaberi:true};
+  const r=await (await fetch('/api/ram',{method:'POST',
+    headers:{'Content-Type':'application/json'}, body:JSON.stringify(telo)})).json();
+  const p=$('#poruka-rama');
+  if(!r.ok){ p.className='poruka lose'; p.textContent=r.poruka||'Nije sačuvano.'; return; }
+  await povuci();
+  p.className='poruka'; p.textContent='Sačuvano.';
+  crtajListuRamova(); prazanObrazac();
+  IZVOR_ZA=null; ucitajIzvor(); osveziPrsten();
+};
+$('#obrisi-ram').onclick = async ()=>{
+  if(RAM_INDEKS<0) return;
+  const r=PODACI.podesavanja.ramovi[RAM_INDEKS];
+  if(!await potvrdi('Obrisati ram „'+r.naziv+'“?', 'Brisanje rama')) return;
+  const o=await (await fetch('/api/ram/'+RAM_INDEKS,{method:'DELETE'})).json();
+  const p=$('#poruka-rama');
+  if(!o.ok){ p.className='poruka lose'; p.textContent=o.poruka||'Nije obrisano.'; return; }
+  await povuci(); RAM_INDEKS=PODACI.podesavanja.izabrani_ram; crtajListuRamova();
+};
+$('#dugme-stl').onclick=()=> $('#stl-fajl').click();
+$('#stl-fajl').onchange = async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  const p=$('#poruka-rama'); p.className='poruka'; p.textContent='Merim model…';
+  const fd=new FormData(); fd.append('fajl',f);
+  let r;
+  try{ r=await (await fetch('/api/stl',{method:'POST',body:fd})).json(); }
+  catch(err){ p.className='poruka lose'; p.textContent='Merenje nije uspelo.'; return; }
+  if(!r.ok){ p.className='poruka lose'; p.textContent=r.poruka||'Merenje nije uspelo.'; return; }
+  const d=r.predlog;
+  $('#r-ps').value=d.prozor[0]; $('#r-pv').value=d.prozor[1];
+  $('#r-rs').value=d.rez[0];    $('#r-rv').value=d.rez[1];
+  if(!$('#r-naziv').value) $('#r-naziv').value=f.name.replace(/\.stl$/i,'');
+  p.className='poruka vazno';
+  p.textContent='⚠ Izmeri dimenzije na odštampanom modelu i potvrdi ih ovde!';
+};
+$$('.tema-dugme').forEach(b=> b.onclick=()=>{
+  $$('.tema-dugme').forEach(x=>x.classList.toggle('aktivna',x===b));
+  document.documentElement.dataset.tema=b.dataset.tema;
+  setTimeout(crtajPlatno,30);
+});
+$('#izaberi-fasciklu').onclick = async ()=>{
+  const b=$('#izaberi-fasciklu'); b.disabled=true;
+  try{
+    const r=await (await fetch('/api/izaberi_fasciklu',{method:'POST'})).json();
+    if(r.ok && r.putanja) $('#p-biblioteka').value=r.putanja;
+    else if(r.poruka) poruka(r.poruka);
+  }catch(e){}
+  b.disabled=false;
+};
+$('#kal-stampaj').onclick = async ()=>{
+  const b=$('#kal-stampaj'); b.disabled=true; b.textContent='Šaljem…';
+  let r;
+  try{ r=await (await fetch('/api/kontrolni_stampa',{method:'POST'})).json(); }
+  catch(e){ r={ok:false,poruka:String(e)}; }
+  b.disabled=false; b.textContent='Odštampaj kontrolni list';
+  dij.close();
+  poruka(r.ok ? 'Kontrolni list je poslat. Izmeri liniju šublerom.' : (r.poruka||'Nije uspelo.'),
+         'Kalibracija');
+};
+$('#kal-upisi').onclick = async ()=>{
+  const v=+$('#k-izmereno').value;
+  if(!(v>50 && v<400)){ $('#poruka-rama').textContent='Unesi izmerenu dužinu u milimetrima.'; return; }
+  await fetch('/api/kalibracija',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({izmereno:v})});
+  await povuci(); napuniPodesavanja();
+};
+$('#sacuvaj-pod').onclick = async ()=>{
+  await fetch('/api/app',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      tema:document.documentElement.dataset.tema,
+      biblioteka:$('#p-biblioteka').value.trim()||null,
+      svi_papiri:$('#p-svi-papiri').checked,
+      lenjir:$('#p-lenjir').checked})});
+  await povuci(); await crtajDrvo(); povuciStampac();
+  dij.close();
+};
+
+/* ============================================ start */
+(async ()=>{
+  await povuci();
+  crtajPresete();
+  await crtajDrvo();
+  povuciStampac();
+  crtajRed();
+})();
+</script>
+</body>
+</html>

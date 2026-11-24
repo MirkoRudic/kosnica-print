@@ -1,0 +1,322 @@
+<body>
+__SPRAJT__
+<div class="ljuska">
+  <div class="app">
+
+    <!-- ===================================================== levo -->
+    <aside class="levo">
+      <div class="marka"><svg><use href="#i-znak"/></svg><b>Košnica Print</b></div>
+      <button class="glavno" id="dugme-uvezi">Uvezi</button>
+      <input type="file" id="fajlovi" multiple hidden
+             accept="image/*,.pdf,.heic,.heif,.tif,.tiff,.webp">
+
+      <div class="biblio">
+        <div class="odsek">
+          <div class="pod-naslov"><span>Nedavno</span><span id="broj"></span></div>
+          <div class="spisak" id="red"></div>
+        </div>
+        <div class="odsek">
+          <div class="pod-naslov"><span>Biblioteka</span></div>
+          <div class="spisak" id="drvo"></div>
+        </div>
+      </div>
+
+      <div class="podes-red">
+        <button class="sporedno" id="dugme-podesavanja">
+          <svg class="ik"><use href="#i-zupcanik"/></svg>Podešavanja</button>
+        <button class="sporedno" id="dugme-ugasi" data-savet="Ugasi" aria-label="Ugasi">
+          <svg class="ik"><use href="#i-struja"/></svg></button>
+      </div>
+    </aside>
+
+    <!-- ===================================================== editor -->
+    <main class="sredina">
+      <div id="vv-bars"></div>
+      <div class="traka-ed"><span class="ime" id="ime-fajla">—</span></div>
+      <div class="scena" id="scena">
+        <canvas id="platno"></canvas>
+        <div class="alatke" id="alatke" hidden>
+          <button data-rot="-90" data-savet="Zarotiraj ulevo" aria-label="Zarotiraj ulevo"><svg class="ik"><use href="#i-rot-levo"/></svg></button>
+          <button data-rot="90" data-savet="Zarotiraj udesno" aria-label="Zarotiraj udesno"><svg class="ik"><use href="#i-rot-desno"/></svg></button>
+          <button id="ogledalo" data-savet="Okreni levo-desno" aria-label="Okreni levo-desno"><svg class="ik"><use href="#i-ogledalo"/></svg></button>
+        </div>
+        <div class="prazno" id="prazno">
+          <div><b>Prevuci sliku ovde</b>ili klikni Uvezi. JPG, PNG, TIFF, HEIC i PDF.</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===================================================== desno -->
+    <aside class="desno">
+      <nav class="tabovi" id="tabovi">
+        <button data-tab="boja" class="aktivan">Boja</button>
+        <button data-tab="preklop">Preklop</button>
+        <button data-tab="tabak">Tabak</button>
+      </nav>
+
+      <div class="telo" id="telo">
+
+        <!-- ------------------------------------------- boja -->
+        <section data-panel="boja" class="grupa">
+          <span class="nalepnica">Preseti</span>
+          <div class="plocice" id="plocice-preseta"></div>
+          <div id="grupa-jacine" hidden>
+            <div class="red"><label for="b-jacina">Jačina preseta</label>
+              <span class="mono" id="v-jacina">100 %</span></div>
+            <input type="range" id="b-jacina" min="0" max="100" value="100">
+          </div>
+          <hr class="crta">
+          <button class="glavno" id="auto-sve">Automatski sredi sliku</button>
+          <div><div class="red"><label for="b-crna">Crna tačka</label><span class="mono" id="v-crna">auto</span></div>
+            <input type="range" id="b-crna" min="0" max="170" value="0"></div>
+          <div><div class="red"><label for="b-bela">Bela tačka</label><span class="mono" id="v-bela">auto</span></div>
+            <input type="range" id="b-bela" min="180" max="255" value="255"></div>
+          <div><div class="red"><label for="b-zas">Zasićenje</label><span class="mono" id="v-zas">1.12</span></div>
+            <input type="range" id="b-zas" min="60" max="180" value="112"></div>
+          <div><div class="red"><label for="b-jas">Lokalni kontrast</label><span class="mono" id="v-jas">30</span></div>
+            <input type="range" id="b-jas" min="0" max="100" value="30"></div>
+          <hr class="crta">
+          <div><div class="red"><label for="b-zum">Veličina u prozoru</label>
+            <span class="mono" id="v-zum">1.00×</span></div>
+            <input type="range" id="b-zum" min="25" max="300" value="100"></div>
+          <div id="grupa-pozadine" hidden>
+            <span class="nalepnica">Boja oko slike</span>
+            <div class="bojice" id="bojice-pozadine"></div>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------- preklop -->
+        <section data-panel="preklop" class="grupa" hidden>
+          <div class="plocice" id="plocice-popune" style="grid-template-columns:1fr"></div>
+          <div id="grupa-boje-popune" hidden>
+            <span class="nalepnica">Boja</span>
+            <div class="bojice" id="bojice"></div>
+            <div class="boja-red">
+              <input type="color" id="boja-birac" value="#FFFFFF">
+              <span class="mono" id="boja-tekst">#FFFFFF</span>
+              <button class="sporedno" id="pipeta" data-savet="Uzmi boju sa ekrana" aria-label="Uzmi boju sa ekrana">
+                <svg class="ik"><use href="#i-pipeta"/></svg></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------- tabak -->
+        <section data-panel="tabak" class="grupa" hidden>
+          <img id="slika-tabaka" alt=""
+               style="width:100%;border:1px solid var(--ivica);border-radius:9px;background:#fff">
+          <div class="red"><label for="kopija">Komada po slici</label>
+            <span class="mono" id="v-kopija">1</span></div>
+          <input type="range" id="kopija" min="1" max="24" value="1">
+          <hr class="crta">
+          <div class="dvoje">
+            <div class="polje"><span>Margina (mm)</span>
+              <input type="number" step="0.5" min="3" id="t-ivica"></div>
+            <div class="polje"><span>Razmak (mm)</span>
+              <input type="number" step="0.5" min="5" id="t-razmak"></div>
+          </div>
+          <button class="sporedno" id="dugme-maks">Iskoristi list do kraja</button>
+          <label class="cek"><input type="checkbox" id="lenjir"> Lenjir za proveru razmere</label>
+          <button class="sporedno" id="dugme-pdf">Napravi PDF umesto štampe</button>
+        </section>
+      </div>
+
+      <div class="dno">
+        <button class="sporedno" id="dugme-sacuvaj" disabled>Sačuvaj pripremu</button>
+        <div class="uporedo">
+          <button class="glavno" id="dugme-stampaj" disabled>Štampaj</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="podnozje"><svg class="ik"><use href="#i-srce-munja"/></svg>Napravljeno u Zajedničkoj zanatskoj radionici Ožiljak<svg class="ik"><use href="#i-srce-munja"/></svg></div>
+</div>
+
+<!-- ======================================================= poruka -->
+<dialog id="dij-poruka"><div class="dij">
+  <div class="dij-glava"><b id="poruka-naslov">Obaveštenje</b></div>
+  <div class="dij-telo"><p class="poruka" id="poruka-tekst" style="font-size:13px"></p></div>
+  <div class="dij-dno"><button class="glavno" id="poruka-ok">U redu</button></div>
+</div></dialog>
+
+<!-- ======================================================= potvrda -->
+<dialog id="dij-potvrda"><div class="dij">
+  <div class="dij-glava"><b id="potvrda-naslov">Potvrda</b></div>
+  <div class="dij-telo"><p class="poruka" id="potvrda-tekst" style="font-size:13px"></p></div>
+  <div class="dij-dno">
+    <button class="sporedno" id="potvrda-ne">Odustani</button>
+    <button class="glavno" id="potvrda-da">Obriši</button>
+  </div>
+</div></dialog>
+
+<!-- ======================================================= naziv -->
+<dialog id="dij-naziv"><div class="dij">
+  <div class="dij-glava"><b>Sačuvaj pripremu</b></div>
+  <div class="dij-telo">
+    <div class="polje"><span>Naziv</span><input type="text" id="naziv-polje"></div>
+  </div>
+  <div class="dij-dno">
+    <button class="sporedno" id="naziv-otkazi">Otkaži</button>
+    <button class="glavno" id="naziv-ok">Sačuvaj</button>
+  </div>
+</div></dialog>
+
+<!-- ======================================================= štampa -->
+<dialog id="dij-stampa"><div class="dij">
+  <div class="dij-glava"><b>Pre štampe</b></div>
+  <div class="dij-telo">
+    <img id="pregled-stampe" alt="">
+    <div class="polje"><span>Štampač</span><select id="s-stampac"></select></div>
+    <div class="polje"><span>Papir</span><select id="s-papir"></select></div>
+    <div class="polje"><span>Šta se štampa</span><select id="s-opseg"></select></div>
+    <div>
+      <div class="red"><label for="s-kopija">Komada po slici</label>
+        <span class="mono" id="s-kopija-v">1</span></div>
+      <input type="range" id="s-kopija" min="1" max="24" value="1">
+    </div>
+    <div class="sazetak">
+      <div><span>Ukupno otisaka</span><b id="s-otisaka">—</b></div>
+      <div><span>Listova</span><b id="s-tabaka">—</b></div>
+    </div>
+    <p class="poruka" id="s-poruka"></p>
+  </div>
+  <div class="dij-dno">
+    <button class="sporedno" id="stampa-odustani">Odustani</button>
+    <button class="glavno" id="stampa-potvrdi">Pošalji na štampač</button>
+  </div>
+</div></dialog>
+
+<!-- ======================================================= dnevnik -->
+<dialog id="dij-dnevnik"><div class="dij">
+  <div class="dij-glava"><b>Dnevnik</b>
+    <button class="sporedno" id="dnevnik-osvezi">Osveži</button>
+    <button class="tiho" id="dnevnik-zatvori"><svg class="ik"><use href="#i-x"/></svg></button></div>
+  <div class="dnev-traka">
+    <input type="text" id="dnevnik-trazi" placeholder="Traži u dnevniku…">
+    <select id="dnevnik-dana">
+      <option value="1">danas</option>
+      <option value="2" selected>2 dana</option>
+      <option value="7">7 dana</option>
+      <option value="30">30 dana</option>
+    </select>
+    <label class="cek"><input type="checkbox" id="dnevnik-greske"> Samo greške</label>
+    <span class="mono" id="dnevnik-velicina">—</span>
+  </div>
+  <div class="dij-telo"><pre id="dnevnik-telo">—</pre></div>
+  <div class="dij-dno">
+    <select id="dnevnik-starost" style="width:auto">
+      <option value="7">starije od 7 dana</option>
+      <option value="30" selected>starije od 30 dana</option>
+      <option value="90">starije od 90 dana</option>
+    </select>
+    <button class="sporedno" id="dnevnik-obrisi">Obriši</button>
+  </div>
+</div></dialog>
+
+<!-- ======================================================= podešavanja -->
+<dialog id="dij-podesavanja"><div class="dij">
+  <div class="dij-glava"><b>Podešavanja</b>
+    <button class="tiho" id="zatvori-pod"><svg class="ik"><use href="#i-x"/></svg></button></div>
+  <div class="dij-telo">
+    <div class="dvokolona">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Izgled</span>
+        <div class="teme" id="teme">
+          <button class="tema-dugme" data-tema="svetla">Svetla</button>
+          <button class="tema-dugme" data-tema="tamna">Tamna</button>
+          <button class="tema-dugme" data-tema="sepija">Sepija</button>
+        </div>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa">
+        <span class="nalepnica">Ramovi</span>
+        <div class="lista-ramova" id="lista-ramova"></div>
+        <button class="sporedno" id="nov-ram">Nov ram</button>
+      </div>
+
+      <div class="grupa">
+        <span class="nalepnica" id="naslov-rama">Mere rama</span>
+        <div class="polje"><span>Naziv</span><input type="text" id="r-naziv"></div>
+        <div class="dvoje">
+          <div class="polje"><span>Prozor širina (mm)</span><input type="number" step="0.01" id="r-ps"></div>
+          <div class="polje"><span>Prozor visina (mm)</span><input type="number" step="0.01" id="r-pv"></div>
+          <div class="polje"><span>Rez širina (mm)</span><input type="number" step="0.01" id="r-rs"></div>
+          <div class="polje"><span>Rez visina (mm)</span><input type="number" step="0.01" id="r-rv"></div>
+          <div class="polje"><span>Napust (mm)</span><input type="number" step="0.1" id="r-nap"></div>
+          <div class="polje"><span>Oštro ogledalo (mm)</span><input type="number" step="0.1" id="r-ostro"></div>
+        </div>
+        <div class="red" style="gap:6px">
+          <button class="glavno" id="sacuvaj-ram" style="flex:1">Sačuvaj ram</button>
+          <button class="sporedno" id="dugme-stl">Izmeri iz STL-a</button>
+          <button class="sporedno" id="obrisi-ram" data-savet="Obriši izabrani ram" aria-label="Obriši izabrani ram">
+            <svg class="ik"><use href="#i-kanta"/></svg></button>
+        </div>
+        <input type="file" id="stl-fajl" accept=".stl" hidden>
+        <p class="poruka" id="poruka-rama"></p>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Štampač</span>
+        <div class="dvoje">
+          <div class="polje"><span>Uređaj</span><select id="izbor-stampaca"></select></div>
+          <div class="polje"><span>Papir</span><select id="izbor-papira"></select></div>
+        </div>
+        <p class="poruka" id="opis-stampaca">Ovo važi samo za poslove koje šalje ova
+          aplikacija. Sistemska podešavanja štampača se ne diraju, pa ono što štampaš
+          iz drugih programa ostaje nepromenjeno.</p>
+        <label class="cek"><input type="checkbox" id="p-svi-papiri"> Prikaži sve tipove papira iz drajvera</label>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Kalibracija</span>
+        <p class="poruka">Odštampaj kontrolni list, izmeri liniju šublerom i unesi
+          koliko si stvarno izmerio.</p>
+        <div class="dvoje">
+          <div class="polje"><span>Izmereno na papiru (mm)</span>
+            <input type="number" step="0.1" id="k-izmereno" value="150"></div>
+          <div class="polje"><span>Trenutni faktor</span>
+            <input type="text" id="k-faktor" readonly></div>
+        </div>
+        <div class="red" style="gap:6px">
+          <button class="sporedno" id="kal-stampaj" style="flex:1">Odštampaj kontrolni list</button>
+          <button class="glavno" id="kal-upisi" style="flex:1">Upiši meru</button>
+        </div>
+        <label class="cek"><input type="checkbox" id="p-lenjir"> Lenjir i na listovima sa slikama</label>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Biblioteka</span>
+        <div class="red" style="gap:6px">
+          <input type="text" id="p-biblioteka" style="flex:1">
+          <button class="sporedno" id="izaberi-fasciklu">Izaberi…</button>
+        </div>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Dnevnik</span>
+        <div class="verzija"><span class="mono" id="pod-dnevnik-mb">—</span></div>
+        <button class="sporedno" id="dugme-dnevnik">
+          <svg class="ik"><use href="#i-dnevnik"/></svg>Dnevnik</button>
+      </div>
+
+      <hr class="crta celo">
+
+      <div class="grupa celo">
+        <span class="nalepnica">Verzija</span>
+        <div id="ver-box"><b id="oznaka-verzije" hidden>—</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="dij-dno"><button class="glavno" id="sacuvaj-pod">Sačuvaj podešavanja</button></div>
+</div></dialog>

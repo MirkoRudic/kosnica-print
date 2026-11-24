@@ -1,0 +1,180 @@
+{
+  "stampac": "L18050 Series(Network)",
+  "port": "EPE411D5:L18050 SERIES",
+  "u_boji": 1,
+  "rezolucije": "GRESKA: (0, 'DeviceCapabilities', 'No error message is available')",
+  "tipovi_papira": [
+    {
+      "sifra": 1,
+      "ime": "Plain paper"
+    },
+    {
+      "sifra": 828,
+      "ime": "Letterhead"
+    },
+    {
+      "sifra": 318,
+      "ime": "Epson Photo Quality Ink Jet"
+    },
+    {
+      "sifra": 326,
+      "ime": "Epson Matte"
+    },
+    {
+      "sifra": 352,
+      "ime": "Epson Ultra Glossy"
+    },
+    {
+      "sifra": 325,
+      "ime": "Epson Premium Glossy"
+    },
+    {
+      "sifra": 275,
+      "ime": "Epson Premium Semigloss"
+    },
+    {
+      "sifra": 396,
+      "ime": "Photo Paper Glossy"
+    },
+    {
+      "sifra": 338,
+      "ime": "Epson Photo Stickers"
+    },
+    {
+      "sifra": 353,
+      "ime": "Envelope"
+    }
+  ],
+  "izvori": [
+    {
+      "sifra": 261,
+      "ime": "Rear Paper Feeder"
+    },
+    {
+      "sifra": 262,
+      "ime": "Rear Feed-Borderless"
+    },
+    {
+      "sifra": 4,
+      "ime": "Disc/ID Card Tray"
+    }
+  ],
+  "formati": [
+    {
+      "sifra": 9,
+      "ime": "A4 210 x 297 mm"
+    },
+    {
+      "sifra": 285,
+      "ime": "10 x 15 cm (4 x 6 in)"
+    },
+    {
+      "sifra": 284,
+      "ime": "13 x 18 cm (5 x 7 in)"
+    },
+    {
+      "sifra": 70,
+      "ime": "A6 105 x 148 mm"
+    },
+    {
+      "sifra": 11,
+      "ime": "A5 148 x 210 mm"
+    },
+    {
+      "sifra": 8,
+      "ime": "A3 297 x 420 mm"
+    },
+    {
+      "sifra": 258,
+      "ime": "A3+ 329 x 483 mm"
+    },
+    {
+      "sifra": 12,
+      "ime": "B4 257 x 364 mm"
+    },
+    {
+      "sifra": 13,
+      "ime": "B5 182 x 257 mm"
+    },
+    {
+      "sifra": 88,
+      "ime": "B6 128 x 182 mm"
+    },
+    {
+      "sifra": 281,
+      "ime": "9 x 13 cm (3.5 x 5 in)"
+    },
+    {
+      "sifra": 267,
+      "ime": "5 x 8 in (127 x 203 mm)"
+    },
+    {
+      "sifra": 268,
+      "ime": "20 x 25 cm (8 x 10 in)"
+    },
+    {
+      "sifra": 306,
+      "ime": "16:9 wide (4 x 7.11 in)"
+    },
+    {
+      "sifra": 263,
+      "ime": "100 x 148 mm"
+    },
+    {
+      "sifra": 20,
+      "ime": "Envelope #10 105 x 241 mm"
+    },
+    {
+      "sifra": 27,
+      "ime": "Envelope DL 110 x 220 mm"
+    },
+    {
+      "sifra": 30,
+      "ime": "Envelope C4 229 x 324 mm"
+    },
+    {
+      "sifra": 31,
+      "ime": "Envelope C6 114 x 162 mm"
+    },
+    {
+      "sifra": 1,
+      "ime": "Letter 8.5 x 11 in (216 x 279 mm)"
+    },
+    {
+      "sifra": 14,
+      "ime": "8.5 x 13 in"
+    },
+    {
+      "sifra": 346,
+      "ime": "Indian-Legal 215 x 345 mm"
+    },
+    {
+      "sifra": 5,
+      "ime": "Legal 8.5 x 14 in (216 x 356 mm)"
+    },
+    {
+      "sifra": 66,
+      "ime": "A2 420 x 594 mm"
+    },
+    {
+      "sifra": 259,
+      "ime": "B3 364 x 515 mm"
+    },
+    {
+      "sifra": 342,
+      "ime": "8K 270 x 390 mm"
+    },
+    {
+      "sifra": 341,
+      "ime": "16K 195 x 270 mm"
+    },
+    {
+      "sifra": 325,
+      "ime": "A5 (24 holes)"
+    },
+    {
+      "sifra": 256,
+      "ime": "User-Defined"
+    }
+  ]
+}
