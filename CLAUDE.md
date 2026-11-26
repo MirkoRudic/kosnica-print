@@ -1,3 +1,5 @@
+Važe pravila iz `PRAVILA.md` u repou MirkoRudic/vajb-osnova (za modele i štampu i `PRAVILA_3D.md`). Ovde su arhitektura, zamke i izuzeci. Šta app radi iz ugla korisnika je u `SPEC.md` — svaka izmena ponašanja prvo tamo. Dokle smo stigli: `STANJE.md`.
+
 # Košnica Print
 
 Lokalna aplikacija za pripremu fotografija i štampu u radionici Ožiljak.
