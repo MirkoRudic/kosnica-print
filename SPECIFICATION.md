@@ -1,7 +1,7 @@
 # Košnica Print — specifikacija
 
 Šta app radi iz ugla korisnika. Svaka izmena ponašanja prvo se upiše ovde, pa u kod.
-Oblik: **kad uradim X → desi se Y**. Tehnika i zamke su u `CLAUDE.md`, gde smo stali u `STANJE.md`.
+Oblik: **kad uradim X → desi se Y**. Tehnika i zamke su u `AGENTS.md`, gde smo stali u `STATUS.md`.
 
 ## Svrha
 Priprema fotografija za ramiće i magnete i štampa na Epson L18050 u radionici Ožiljak. Obrada i izvoz rade u Python procesu, pa se između slike i štampača ništa ne skalira — mere na papiru su tačne.

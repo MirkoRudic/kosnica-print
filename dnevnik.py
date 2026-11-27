@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Dnevnik rada aplikacije - tanak sloj nad applog.py (PRAVILA.md L1-L6).
+Dnevnik rada aplikacije - tanak sloj nad applog.py (RULES.md L1-L6).
 
 Jedan fajl po danu: podaci/logs/kosnica-print_YYYY-MM-DD.log
 

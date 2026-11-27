@@ -1,7 +1,7 @@
 # Košnica Print — stanje (26.11.2026)
 
 Verzija **1.2.0**. Računar u radionici `desktop-fk7e7jt`, `C:\Users\zzroz\Desktop\VAJB\kosnica-print`, port 8733, git klon ovog repoa, ažuriranje iz Podešavanja → Verzija.
-Nastavak u novom četu: pročitaj `CLAUDE.md`, `SPEC.md`, ovaj fajl; pravila `vajb-osnova/PRAVILA.md`. Ramovi (3D model) ne pripadaju ovde — `vajb-osnova/PRAVILA_3D.md`.
+Nastavak u novom četu: pročitaj `AGENTS.md`, `SPECIFICATION.md`, ovaj fajl; pravila `vajb-osnova/RULES.md`. Ramovi (3D model) ne pripadaju ovde — `vajb-osnova/RULES_3D_PRINTING.md`.
 
 ## Poslednje urađeno
 - 24.11: repo i ažuriranje iz app (V2/V3), Edge `--app` + ikonica pored sata (P3/P4), folder premešten u `Desktop\VAJB`.

@@ -1,4 +1,4 @@
-"""Prozor aplikacije (PRAVILA.md P3, P4): Edge --app sa sopstvenim profilom, ikonica pored sata
+"""Prozor aplikacije (RULES.md P3, P4): Edge --app sa sopstvenim profilom, ikonica pored sata
 (Otvori / Ugasi), a gašenje zatvara i prozor."""
 import os
 import shutil
